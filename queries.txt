@@ -1,0 +1,18 @@
+1. SELECT n_name s_name
+FROM nation, region,supplier
+WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey;
+
+2.SELECT n_name
+FROM nation, region,supplier
+WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey
+INTERSECT
+select n_name
+from nation
+where n_name = 'ALGERIA'
+INTERSECT
+select n_name
+from nation;
+
+3. SELECT count(n_name)
+FROM nation, region,supplier
+WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey;
