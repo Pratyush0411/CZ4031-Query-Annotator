@@ -13,6 +13,15 @@ INTERSECT
 select n_name
 from nation;
 
+## sub query on same level
+SELECT n_name
+FROM nation, region,supplier
+WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
+(SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
+r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
+
+
+
 3. SELECT count(n_name)
 FROM nation, region,supplier
 WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey;
