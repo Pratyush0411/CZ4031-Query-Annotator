@@ -145,14 +145,16 @@ class Parser:
                                 subq.tokens, sub_query_number+cnt)
 
                             # In->Join
-                            colName = t.tokens[0].value
-                            tableName = subTableName = self.ct_map[colName]
-                            if sub_query_number > 0:
-                                tableName += "_{}".format(sub_query_number)
-                            subTableName += "_{}".format(sub_query_number+cnt)
-                            x = dummyToken(tableName+"."+colName +
-                                           "="+subTableName+"."+colName)
-                            where.append(x)
+                            if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
+                                colName = t.tokens[0].value
+                                tableName = subTableName = self.ct_map[colName]
+                                if sub_query_number > 0:
+                                    tableName += "_{}".format(sub_query_number)
+                                subTableName += "_{}".format(
+                                    sub_query_number+cnt)
+                                x = dummyToken(tableName+"."+colName +
+                                               "="+subTableName+"."+colName)
+                                where.append(x)
 
                             cnt += 1
 
