@@ -25,9 +25,10 @@ class Query_plan_node(object):
         self.actual_rows = actual_rows
         self.actual_time = actual_time
         self.description = description
-        self.output_name = None
+        self.annotation = None
         
-    
+    def write_annotation(self, annotation:str):
+        self.annotation = annotation
     def add_child(self, child):
         self.children.append(child)
         
@@ -50,6 +51,31 @@ class Query_plan_node(object):
         
         if self.table_filter is not None:
             print_str += f'Filter Condition: {self.table_filter} '
+        
+        if self.alias is not None:
+            print_str += f'Alias: {self.alias} '
+        
 
         return print_str
+    
+    def is_conditional(self):
+        
+        if self.index_condition is None and self.hash_condition is None and self.merge_condition is None and self.table_filter is None:
+            return False
+        
+        return True
+    
+    def get_condition(self):
+        
+        if self.index_condition is not None:
+            return self.index_condition
+            
+        if self.hash_condition is not None:
+             return self.hash_condition
+            
+        if self.merge_condition is not None:
+           return self.merge_condition
+        
+        if self.table_filter is not None:
+            return self.table_filter
         

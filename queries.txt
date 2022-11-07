@@ -21,7 +21,24 @@ WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN
 r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
 
 
+groupby 
 
-3. SELECT count(n_name)
+
+3. SELECT count(n_name) as CNT
 FROM nation, region,supplier
 WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey;
+HAVING CNT>100
+
+To Do:
+
+1. IN operator --> join - quang 
+2. Having alias --> actual name -trevor
+3. String matching - Pratyush
+4. Join ordering - Pratyush, trevor
+5. Justification (Hardcode ---)
+
+
+Justification:
+
+1. join
+2. scans

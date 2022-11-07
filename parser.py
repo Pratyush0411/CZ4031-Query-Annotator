@@ -19,7 +19,7 @@ class Parser:
     def __init__(self, raw_query):
         
         self.tc_map, self.ct_map = stats.retrieve_maps()
-        
+        self.cnt = 1 # subquery count
         self.cleaned_query = self._clean(raw_query)
         # print("Cleaning result ..")
         # print(self.cleaned_query)
@@ -29,6 +29,7 @@ class Parser:
         self.table_names = self.__get_table_names(self.tokens)
         print("Table names ..")
         print(self.table_names)
+        
         self.where_clauses = self.__extract_where_clauses(self.tokens,0)
         print("Where clauses ..") 
         i = 1
@@ -38,6 +39,7 @@ class Parser:
         self.having_clauses = self.__extract_having_clauses(self.tokens,0)
         print("Having clauses ..")
         print(self.having_clauses)
+        
         
     def __get_tokens(self, cleaned_query):
         
@@ -122,7 +124,6 @@ class Parser:
     def __extract_where_clauses(self, tokens, sub_query_number = 0):
         
         where = []
-        cnt = 1
         for i in range(len(tokens)):
          
             if isinstance(tokens[i],Where):
@@ -142,8 +143,8 @@ class Parser:
                         else:
                             subq = self.__return_subquery(t)
                             # print(subq)
-                            where += self.__extract_where_clauses(subq.tokens, sub_query_number+cnt)
-                            cnt +=1
+                            where += self.__extract_where_clauses(subq.tokens, sub_query_number+self.cnt)
+                            self.cnt +=1
                             
                             
         return where
@@ -166,12 +167,12 @@ class Parser:
                         if (not self.__is_subquery(t)):
                         
                             new_t = self.reconstruct_comparisons(t, sub_query_number)
-                            print(new_t.value)
+                            #print(new_t.value)
                             where.append(new_t)
                             
                         else:
                             subq = self.__return_subquery(t)
-                            print(subq)
+                            #print(subq)
                             where += self.__extract_where_clauses(subq.tokens, sub_query_number+cnt)
                             cnt+=1
                             
@@ -197,12 +198,13 @@ class Parser:
         return ""
         
 
-raw_query = '''
-SELECT n_name
-FROM nation, region,supplier
-WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
-(SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
-r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
-'''   
+# raw_query = '''
+# SELECT n_name
+# FROM nation, region,supplier
+# WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
+# (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA' AND
+# r_name in (SELECT DISTINCT r_name from region where r_name <> 'LATIN AMERICA' AND r_name <> 'AFRICA')) AND
+# r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
+# '''   
     
-p = Parser(raw_query)
+# p = Parser(raw_query)
