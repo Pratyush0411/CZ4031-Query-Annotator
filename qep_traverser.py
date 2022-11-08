@@ -11,8 +11,6 @@ class Query_plan_traverser:
     
     def __init__(self, qep_json) -> None:
         self.root = self.__create_qep_tree(qep_json)
-        self.print_tree()
-        self.conditional_nodes = self.__get_conditional_nodes()
         pass
     
     def __return_qep_node(self,plan)->Query_plan_node:
@@ -59,9 +57,9 @@ class Query_plan_traverser:
                             index_name, hash_condition, table_filter, index_condition, merge_condition, recheck_condition, join_filter,
                             subplan_name, actual_rows, actual_time, description)
         
-    def __bfs_intermediate_solutions(self, start):
+    def __bfs_intermediate_solutions(self, start:Query_plan_node):
         inter = []        
-        q = [start]
+        q = start.children
     
         while (len(q) != 0 and len(inter) != 2):
             
@@ -71,11 +69,17 @@ class Query_plan_traverser:
                 if node is not None:
                     if 'Join' in node.node_type:
                 
-                        inter.append(f"intermediate results from the join with SQL condition - {node.get_condition()}")
+                        inter.append(f"intermediate results from the join with SQL condition - {node.get_join_condition()}")
                 
                     elif 'Scan' in node.node_type:
                 
                         inter.append(f"the relation {node.relation_name}")
+                    
+                    elif 'Nested Loop' in node.node_type:
+                        if node.join_filter is None:
+                            self.__convert_to_index_based(node)
+                        if node.join_filter is not None:
+                            inter.append(f"intermediate results from the join with SQL condition - {node.get_join_condition()}")
                         
                     
                     if len(node.children) != 0:
@@ -84,14 +88,40 @@ class Query_plan_traverser:
                
             q = c
         return inter
+    
+    def __convert_to_index_based(self,node:Query_plan_node):
+        for child in node.children:
+                
+            if 'Index Scan' in child.node_type and child.index_condition is not None:
+                
+                node.node_type = 'Index based Nested Loop Join'
+                node.join_filter = child.index_condition
+                child.index_condition = None
+                break
+    
+    def __annotate_nested_loop(self, node:Query_plan_node):
         
+        if node.join_filter is None:
+            self.__convert_to_index_based(node)
         
+        if node.get_join_condition() is not None:
+            
+            annotation_string = f"The join was performed using {node.node_type}. Actual SQL condition is {node.get_join_condition()}. "
+            inter = self.__bfs_intermediate_solutions(node)
+        
+           
+            annotation_string+= f'It was performed on {inter[0]} and {inter[1]}'
+            
+            node.write_annotation(annotation=annotation_string)
+            
+    
+    
     def __annotate_joins(self, node:Query_plan_node):
         
         if len(node.children) != 2:
             return
         
-        annotation_string = f"The join was performed using {node.node_type}. Actual SQL condition is {node.get_condition()}. "
+        annotation_string = f"The join was performed using {node.node_type}. Actual SQL condition is {node.get_join_condition()}. "
         inter = self.__bfs_intermediate_solutions(node)
         
            
@@ -101,7 +131,14 @@ class Query_plan_traverser:
         
     def __annotate_scans(self, scan:Query_plan_node):
         
-        annotation_string = f"The relation {scan.relation_name} was scanned using {scan.node_type}"
+        annotation_string = f"The relation {scan.relation_name} was scanned using {scan.node_type}. "
+        
+        if 'Index' in scan.node_type:
+            annotation_string+= f"The index condition is {scan.index_condition}. "
+        
+        if scan.table_filter is not None:
+            annotation_string+= f"The filter condition is {scan.table_filter}. "
+        
         scan.write_annotation(annotation_string)
         
     
@@ -114,6 +151,10 @@ class Query_plan_traverser:
         elif 'Scan' in node.node_type:
             
             self.__annotate_scans(node)
+        
+        elif 'Nested Loop' in node.node_type:
+            
+            self.__annotate_nested_loop(node)
             
     
     def __create_qep_tree(self,qep_json):
@@ -150,9 +191,6 @@ class Query_plan_traverser:
             
         return root
     
-    # def __annotate_joins(self):
-    #     # add join ordering 
-    #     if
     
     def print_tree(self):
         
@@ -181,7 +219,7 @@ class Query_plan_traverser:
             level +=1
             
             
-    def __get_conditional_nodes(self,):
+    def get_conditional_nodes_and_table_reads(self,):
         
         
         level = 1
@@ -189,17 +227,23 @@ class Query_plan_traverser:
         q = [self.root]
         
         ans = {}
+        annotations_table_reads = {}
         while (len(q) != 0):
             
             c = []
-            print_str = ''
             for node in q:
                 
                 if node is not None:
                     self.__write_annotations(node)
-                    if node.is_conditional:
-                        condition = node.get_condition()
-                        ans [condition] = node
+                    if node.is_conditional():
+                        conditions = node.get_conditions()
+                        for condition in conditions:
+                            ans [condition] = node
+                    elif 'Scan' in node.node_type:
+                        print(node)
+                        annotations_table_reads[node.relation_name] = node.node_type
+                        if node.annotation is not None:
+                            annotations_table_reads[node.relation_name] = node.annotation
                         
                     
                     if len(node.children) != 0:
@@ -209,7 +253,10 @@ class Query_plan_traverser:
             q = c
             level +=1
             
-        return ans
+        return ans, annotations_table_reads
+    
+    
+        
         
         
             
@@ -224,28 +271,66 @@ db = DBConnection()
 
 # '''     
 #sql_query = " select * from part where p_brand = 'Brand#13' and p_size <> (select max(p_size) from part);"   
+# sql_query = '''
+# SELECT n_name
+# FROM nation, region,supplier
+# WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
+# (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA' AND
+# r_name in (SELECT DISTINCT r_name from region where r_name <> 'LATIN AMERICA' AND r_name <> 'AFRICA')) AND
+# r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
+# ''' 
 sql_query = '''
-SELECT n_name
-FROM nation, region,supplier
-WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
-(SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA' AND
-r_name in (SELECT DISTINCT r_name from region where r_name <> 'LATIN AMERICA' AND r_name <> 'AFRICA')) AND
-r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
-''' 
+select
+      n_name,
+      sum(l_extendedprice * (1 - l_discount)) as revenue
+    from
+      customer,
+      orders,
+      lineitem,
+      supplier,
+      nation,
+      region
+    where
+      c_custkey = o_custkey
+      and l_orderkey = o_orderkey
+      and l_suppkey = s_suppkey
+      and c_nationkey = s_nationkey
+      and s_nationkey = n_nationkey
+      and n_regionkey = r_regionkey
+      and r_name = 'ASIA'
+      and o_orderdate >= '1994-01-01'
+      and o_orderdate < '1995-01-01'
+      and c_acctbal > 10
+      and s_acctbal > 20
+    group by
+      n_name
+    order by
+      revenue desc;
+
+'''
 qp = Query_plan_generator(db, sql_query)
 qep_json = qp.get_dbms_qep()
 qep_json = json.loads(json.dumps(qep_json[0][0]))
 qpt = Query_plan_traverser(qep_json)
-#print (qpt.conditional_nodes.keys())
 parser = Parser(sql_query)
 
 qm = QEP_matcher()
-m = qm.string_matcher(parser.where_clauses, parser.having_clauses, qpt.conditional_nodes)
+condition_to_node_map, table_reads_map = qpt.get_conditional_nodes_and_table_reads()
+m,c = qm.string_matcher(parser.where_clauses, parser.having_clauses, condition_to_node_map)
 
 
 for k,v in m.items():
     
     print(f'{k}:{v}')
+    
+for k,v in table_reads_map.items():
+    
+    print(f'{k}:{v}')
+    
+# for k,v in c.items():
+    
+#     print(f'{k}:{v}')
+#qpt.print_tree()
 
         
             

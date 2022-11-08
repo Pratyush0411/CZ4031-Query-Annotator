@@ -54,28 +54,55 @@ class Query_plan_node(object):
         
         if self.alias is not None:
             print_str += f'Alias: {self.alias} '
+            
+        if self.join_filter is not None:
+            print_str += f'Join filter: {self.join_filter} '
         
 
         return print_str
     
     def is_conditional(self):
         
-        if self.index_condition is None and self.hash_condition is None and self.merge_condition is None and self.table_filter is None:
+        if self.index_condition is None and self.hash_condition is None and self.merge_condition is None and self.table_filter is None and self.join_filter is None:
             return False
         
         return True
     
-    def get_condition(self):
-        
+    def get_conditions(self):
+        conditions = []
         if self.index_condition is not None:
-            return self.index_condition
+            conditions.append(self.index_condition)
             
         if self.hash_condition is not None:
-             return self.hash_condition
+             conditions.append(self.hash_condition)
             
         if self.merge_condition is not None:
-           return self.merge_condition
+           conditions.append(self.merge_condition)
         
         if self.table_filter is not None:
-            return self.table_filter
+            conditions.append(self.table_filter)
+        
+        if self.join_filter is not None:
+            conditions.append(self.join_filter)
+            
+        return conditions
+    
+    def get_join_condition(self):
+        
+        if self.is_conditional is False:
+           return None
+                
+        if 'Merge' in self.node_type:
+            
+            return self.merge_condition
+        
+        if 'Hash' in self.node_type:
+            
+            return self.hash_condition
+        
+        if 'Nested Loop' in self.node_type:
+            
+            return self.join_filter
+        
+        
         

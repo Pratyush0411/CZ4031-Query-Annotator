@@ -12,6 +12,7 @@ class QEP_matcher():
         condition_nodes= condition_to_nodes_map.keys()
         
         condition_to_qep_map = {}
+        annotation_map = {}
         
         
         for item in where_clauses:
@@ -20,20 +21,24 @@ class QEP_matcher():
             if item not in condition_to_qep_map:
                 
                 if condition_to_nodes_map[x].annotation is not None:
-                    condition_to_qep_map[item] = (x,condition_to_nodes_map[x].annotation)
+                    condition_to_qep_map[item] = x
+                    annotation_map[item] = condition_to_nodes_map[x].annotation
                 else:
-                    condition_to_qep_map[item] = (x,condition_to_nodes_map[x].node_type)
+                    condition_to_qep_map[item] = x
+                    annotation_map[item] = condition_to_nodes_map[x].node_type
             
         for item in having_clauses:
             item = item.value
             x,_ = process.extractOne(item, condition_nodes)
             if item not in condition_to_qep_map:
                 if condition_to_nodes_map[x].annotation is not None:
-                    condition_to_qep_map[item] = (x,condition_to_nodes_map[x].annotation)
+                    condition_to_qep_map[item] = x
+                    annotation_map[item] = condition_to_nodes_map[x].annotation
                 else:
-                    condition_to_qep_map[item] = (x,condition_to_nodes_map[x].node_type)
+                    condition_to_qep_map[item] = x
+                    annotation_map[item] = condition_to_nodes_map[x].node_type
                 
-        return condition_to_qep_map
+        return annotation_map,condition_to_qep_map,
                 
         
         
