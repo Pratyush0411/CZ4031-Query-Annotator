@@ -8,7 +8,7 @@ from parser import Parser
 from qep_traverser import Query_plan_traverser
 from queries import *
 
-sql_query = q2
+sql_query = q1
 
 def __combine_maps(deconstructed_map,table_reads_map):
     

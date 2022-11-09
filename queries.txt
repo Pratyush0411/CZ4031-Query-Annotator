@@ -36,9 +36,24 @@ To Do:
 3. String matching - Pratyush
 4. Join ordering - Pratyush, trevor
 5. Justification (Hardcode ---)
+6. part >$1
+
+
 
 
 Justification:
 
 1. join
 2. scans
+
+
+a join b join c (200+300)
+
+300 > 100
+
+b join c join a (100 + 900) 
+
+Compare AQP tree and QEP tree
+
+
+Scan - Index and Sequential and Bitmap 

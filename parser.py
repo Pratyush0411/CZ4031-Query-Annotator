@@ -135,14 +135,19 @@ class Parser:
             # In->Join
             if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
                 colName = t.tokens[0].value
-                tableName = subTableName = self.ct_map[colName]
-                if sub_query_number > 0:
-                    tableName += "_{}".format(sub_query_number)
-                subTableName += "_{}".format(
-                    sub_query_number+self.cnt)
-                x = dummyToken(tableName+"."+colName +
-                                "="+subTableName+"."+colName)
-                ans.append(x)
+                if colName in self.ct_map:
+                    tableName = subTableName = self.ct_map[colName]
+                    if sub_query_number > 0:
+                        tableName += "_{}".format(sub_query_number)
+                    subTableName += "_{}".format(
+                        sub_query_number+self.cnt)
+                    x = dummyToken(tableName+"."+colName +
+                                    "="+subTableName+"."+colName)
+                    ans.append(x)
+                else:
+                    x = dummyToken(colName +
+                                    "="+colName)
+                    ans.append(x)
                 org_clause = f"{t.tokens[0].value} {t.tokens[2].value}"
                 self.new_clause_to_org_clause[x.value] = org_clause
             
