@@ -120,12 +120,41 @@ class Parser:
                 
         return val
     
+    def __handle_comparison(self, t, sub_query_number, ans):
+        if (not self.__is_subquery(t)):
+            org = t.value
+            new_t = self.reconstruct_comparisons(t, sub_query_number)
+            ans.append(new_t)
+            self.new_clause_to_org_clause[new_t.value] = org
+            
+        else:
+            subq = self.__return_subquery(t)
+            # print(subq)
+            ans += self.__extract_where_and_having_clauses(subq.tokens, sub_query_number+self.cnt)
+            
+            # In->Join
+            if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
+                colName = t.tokens[0].value
+                tableName = subTableName = self.ct_map[colName]
+                if sub_query_number > 0:
+                    tableName += "_{}".format(sub_query_number)
+                subTableName += "_{}".format(
+                    sub_query_number+self.cnt)
+                x = dummyToken(tableName+"."+colName +
+                                "="+subTableName+"."+colName)
+                ans.append(x)
+                org_clause = f"{t.tokens[0].value} {t.tokens[2].value}"
+                self.new_clause_to_org_clause[x.value] = org_clause
+            
+            self.cnt +=1
+        return ans
+    
     def __extract_where_and_having_clauses(self, tokens, sub_query_number = 0):
         
         ans = []
         for i in range(len(tokens)):
          
-            if isinstance(tokens[i],Where):
+            if isinstance(tokens[i],Where) or isinstance(tokens[i],Having) or tokens[i].is_group:
             
                 for t in tokens[i].tokens:
                     if isinstance(t,Parenthesis):
@@ -133,70 +162,8 @@ class Parser:
                         ans += self.__extract_where_and_having_clauses(t.tokens, sub_query_number)
                     
                     if isinstance(t, Comparison):
+                        ans = self.__handle_comparison(t, sub_query_number, ans)
                         
-                        if (not self.__is_subquery(t)):
-                            org = t.value
-                            new_t = self.reconstruct_comparisons(t, sub_query_number)
-                            ans.append(new_t)
-                            self.new_clause_to_org_clause[new_t.value] = org
-                            
-                        else:
-                            subq = self.__return_subquery(t)
-                            # print(subq)
-                            ans += self.__extract_where_and_having_clauses(subq.tokens, sub_query_number+self.cnt)
-                            
-                            # In->Join
-                            if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
-                                colName = t.tokens[0].value
-                                tableName = subTableName = self.ct_map[colName]
-                                if sub_query_number > 0:
-                                    tableName += "_{}".format(sub_query_number)
-                                subTableName += "_{}".format(
-                                    sub_query_number+self.cnt)
-                                x = dummyToken(tableName+"."+colName +
-                                               "="+subTableName+"."+colName)
-                                ans.append(x)
-                                org_clause = f"{t.tokens[0].value} {t.tokens[2].value}"
-                                self.new_clause_to_org_clause[x.value] = org_clause
-                            
-                            self.cnt +=1
-                            
-            
-            elif isinstance(tokens[i],Having):
-                
-                for t in tokens[i].tokens:
-                    
-                    if isinstance(t,Parenthesis):
-                        
-                        ans += self.__extract_where_and_having_clauses(t.tokens, sub_query_number)
-                
-                    if isinstance(t, Comparison):
-                        
-                        if (not self.__is_subquery(t)):
-                            org = t.value
-                            new_t = self.reconstruct_comparisons(t, sub_query_number)
-                            ans.append(new_t)
-                            self.new_clause_to_org_clause[new_t.value] = org
-                            
-                        else:
-                            subq = self.__return_subquery(t)
-                            ans += self.__extract_where_and_having_clauses(subq.tokens, sub_query_number+self.cnt)
-                            
-                            # In->Join
-                            if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
-                                colName = t.tokens[0].value
-                                tableName = subTableName = self.ct_map[colName]
-                                if sub_query_number > 0:
-                                    tableName += "_{}".format(sub_query_number)
-                                subTableName += "_{}".format(
-                                    sub_query_number+self.cnt)
-                                x = dummyToken(tableName+"."+colName +
-                                               "="+subTableName+"."+colName)
-                                ans.append(x)
-                                org_clause = f"{t.tokens[0].value} {t.tokens[2].value}"
-                                self.new_clause_to_org_clause[x.value] = org_clause
-                            
-                            self.cnt +=1
             elif  self.__is_subquery(tokens[i]):
                 for t in tokens[i].tokens:
             
@@ -206,43 +173,7 @@ class Parser:
                         
                         self.cnt +=1
                     
-            elif tokens[i].is_group:
-                for t in tokens[i].tokens:
-                    if isinstance(t,Parenthesis):
-                        
-                        ans += self.__extract_where_and_having_clauses(t.tokens, sub_query_number)
-                    if isinstance(t, Comparison):
-                            
-                            if (not self.__is_subquery(t)):
-                                org = t.value
-                                new_t = self.reconstruct_comparisons(t, sub_query_number)
-                                ans.append(new_t)
-                                self.new_clause_to_org_clause[new_t.value] = org
-                                
-                            else:
-                                subq = self.__return_subquery(t)
-                                ans += self.__extract_where_and_having_clauses(subq.tokens, sub_query_number+self.cnt)
-                                
-                                # In->Join
-                                if len(t.tokens) >= 3 and t.tokens[2].value.lower() == "in":
-                                    colName = t.tokens[0].value
-                                    tableName = subTableName = self.ct_map[colName]
-                                    if sub_query_number > 0:
-                                        tableName += "_{}".format(sub_query_number)
-                                    subTableName += "_{}".format(
-                                        sub_query_number+self.cnt)
-                                    x = dummyToken(tableName+"."+colName +
-                                                "="+subTableName+"."+colName)
-                                    ans.append(x)
-                                    org_clause = f"{t.tokens[0].value} {t.tokens[2].value}"
-                                    self.new_clause_to_org_clause[x.value] = org_clause
-                                
-                                self.cnt +=1
-                    
-                    
-
-                            
-                            
+                       
         return ans
 
             
