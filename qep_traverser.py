@@ -125,7 +125,9 @@ class Query_plan_traverser:
         inter = self.__bfs_intermediate_solutions(node)
         
            
-        annotation_string+= f'It was performed on {inter[0]} and {inter[1]}'
+        annotation_string+= f'It was performed on {inter[0]} and {inter[1]}. '
+        if node.join_filter is not None:
+            annotation_string+= f'The join filter condition was {node.join_filter}'
         
         node.write_annotation(annotation=annotation_string)
         
@@ -240,10 +242,24 @@ class Query_plan_traverser:
                         for condition in conditions:
                             ans [condition] = node
                     elif 'Scan' in node.node_type:
-                        print(node)
-                        annotations_table_reads[node.relation_name] = node.node_type
+                        
                         if node.annotation is not None:
-                            annotations_table_reads[node.relation_name] = node.annotation
+                            if node.relation_name in annotations_table_reads:
+                            
+                                v = annotations_table_reads[node.relation_name]
+                                if type(v) is not list:
+                                    annotations_table_reads[node.relation_name] = [v]
+                                annotations_table_reads[node.relation_name].append(node.annotation)
+                            else:
+                                annotations_table_reads[node.relation_name] = node.annotation
+                        else:
+                            if node.relation_name in annotations_table_reads:
+                                v = annotations_table_reads[node.relation_name]
+                                if type(v) is not list:
+                                    annotations_table_reads[node.relation_name] = [v]
+                                annotations_table_reads[node.relation_name].append(node.node_type)
+                            else:
+                                annotations_table_reads[node.relation_name] = node.node_type
                         
                     
                     if len(node.children) != 0:
@@ -256,88 +272,5 @@ class Query_plan_traverser:
         return ans, annotations_table_reads
     
     
-        
-        
-        
-            
-
-db = DBConnection()
-# sql_query = '''
-# SELECT n_name
-# FROM nation N, region R,supplier S
-# WHERE R.r_regionkey=N.n_regionkey AND S.s_nationkey = N.n_nationkey AND N.n_name IN 
-# (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
-# r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
-
-# '''     
-#sql_query = " select * from part where p_brand = 'Brand#13' and p_size <> (select max(p_size) from part);"   
-# sql_query = '''
-# SELECT n_name
-# FROM nation, region,supplier
-# WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
-# (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA' AND
-# r_name in (SELECT DISTINCT r_name from region where r_name <> 'LATIN AMERICA' AND r_name <> 'AFRICA')) AND
-# r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
-# ''' 
-sql_query = '''
-select
-      n_name,
-      sum(l_extendedprice * (1 - l_discount)) as revenue
-    from
-      customer,
-      orders,
-      lineitem,
-      supplier,
-      nation,
-      region
-    where
-      c_custkey = o_custkey
-      and l_orderkey = o_orderkey
-      and l_suppkey = s_suppkey
-      and c_nationkey = s_nationkey
-      and s_nationkey = n_nationkey
-      and n_regionkey = r_regionkey
-      and r_name = 'ASIA'
-      and o_orderdate >= '1994-01-01'
-      and o_orderdate < '1995-01-01'
-      and c_acctbal > 10
-      and s_acctbal > 20
-    group by
-      n_name
-    order by
-      revenue desc;
-
-'''
-qp = Query_plan_generator(db, sql_query)
-qep_json = qp.get_dbms_qep()
-qep_json = json.loads(json.dumps(qep_json[0][0]))
-qpt = Query_plan_traverser(qep_json)
-parser = Parser(sql_query)
-
-qm = QEP_matcher()
-condition_to_node_map, table_reads_map = qpt.get_conditional_nodes_and_table_reads()
-m,c = qm.string_matcher(parser.where_clauses, parser.having_clauses, condition_to_node_map)
-
-
-for k,v in m.items():
-    
-    print(f'{k}:{v}')
-    
-for k,v in table_reads_map.items():
-    
-    print(f'{k}:{v}')
-    
-# for k,v in c.items():
-    
-#     print(f'{k}:{v}')
-#qpt.print_tree()
-
-        
-            
-            
-            
-        
-        
-        
         
         

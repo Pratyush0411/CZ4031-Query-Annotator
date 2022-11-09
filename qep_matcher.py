@@ -7,7 +7,7 @@ class QEP_matcher():
     def __init__(self,):
         pass
     
-    def string_matcher(self,where_clauses:list, having_clauses: list, condition_to_nodes_map: dict)->dict:
+    def string_matcher(self,where_clauses:list, condition_to_nodes_map: dict)->dict:
         
         condition_nodes= condition_to_nodes_map.keys()
         
@@ -20,17 +20,6 @@ class QEP_matcher():
             x,_ = process.extractOne(item, condition_nodes)
             if item not in condition_to_qep_map:
                 
-                if condition_to_nodes_map[x].annotation is not None:
-                    condition_to_qep_map[item] = x
-                    annotation_map[item] = condition_to_nodes_map[x].annotation
-                else:
-                    condition_to_qep_map[item] = x
-                    annotation_map[item] = condition_to_nodes_map[x].node_type
-            
-        for item in having_clauses:
-            item = item.value
-            x,_ = process.extractOne(item, condition_nodes)
-            if item not in condition_to_qep_map:
                 if condition_to_nodes_map[x].annotation is not None:
                     condition_to_qep_map[item] = x
                     annotation_map[item] = condition_to_nodes_map[x].annotation
