@@ -9,7 +9,8 @@ from qep_traverser import Query_plan_traverser
 from queries import *
 
 #sql_query = q2
-sql_query = lantern_q2
+#sql_query = lantern_q2
+sql_query = testsql
 
 def __combine_maps(deconstructed_map,table_reads_map):
     
@@ -88,4 +89,5 @@ print(cleaned_query)
 print("---------------Aliases---------------")
 
 print(aliases)
+
     

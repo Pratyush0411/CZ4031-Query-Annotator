@@ -86,14 +86,30 @@ class Parser:
     def __alias_dict(self, tokens):
         
         aldict = {}
+        column_identifiers = []
         
-        for i in range(len(tokens)):
-            if tokens[i].ttype is Keyword and 'as' in tokens[i].value.lower():
-                aliasIs = tokens[i+1].value
-                realIs = tokens[i-1].value
-                aldict[aliasIs] = realIs
+        # for i in range(len(tokens)):
+            # if tokens[i].ttype is Keyword and 'as' in tokens[i].value.lower():
+                # aliasIs = tokens[i+1].value
+                # realIs = tokens[i-1].value
+                # aldict[aliasIs] = realIs
                 
+        for tok in tokens:
+            if isinstance(tok, sqlparse.sql.Comment):
+                continue
+            if str(tok).lower() == 'select':
+                in_select = True
+            elif in_select and tok.ttype is None:
+                for identifier in tok.get_identifiers():
+                    column_identifiers.append(identifier)
+                break
+
+        # get column names
+        for column_identifier in column_identifiers:
+            #aldict[column_identifier] = column_identifier.get_name()
+            aldict[column_identifier.get_real_name()] = column_identifier.get_name()
         return aldict
+            
     
     def reconstruct_comparisons(self, token, sub_query_number):
         
