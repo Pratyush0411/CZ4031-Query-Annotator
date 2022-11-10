@@ -4,7 +4,7 @@ from qep_generator import Query_plan_generator
 from db import DBConnection
 import json
 from qep_matcher import QEP_matcher
-from parser import Parser
+from parserr import Parser
 
 class Query_plan_traverser:
     

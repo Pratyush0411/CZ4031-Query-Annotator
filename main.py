@@ -4,11 +4,12 @@ from qep_generator import Query_plan_generator
 from db import DBConnection
 import json
 from qep_matcher import QEP_matcher
-from parser import Parser
+from parserr import Parser
 from qep_traverser import Query_plan_traverser
 from queries import *
 
-sql_query = q2
+#sql_query = q2
+sql_query = lantern_q2
 
 def __combine_maps(deconstructed_map,table_reads_map):
     
@@ -69,10 +70,10 @@ def main(sql_query):
     ans = __combine_maps(dc,table_reads_map)
     
     print(qpt.print_tree())
-    return ans, parser.cleaned_query
+    return ans, parser.cleaned_query, parser.aliasDict
 
 
-answer,cleaned_query = main(sql_query)
+answer,cleaned_query,aliases = main(sql_query)
 
 
 print ("----------- ANS ----------------")
@@ -84,4 +85,7 @@ print("---------------Cleaned Query---------------")
 
 print(cleaned_query)
     
+print("---------------Aliases---------------")
+
+print(aliases)
     

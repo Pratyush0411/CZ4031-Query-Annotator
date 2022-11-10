@@ -38,6 +38,8 @@ class Parser:
         print("Map to original clauses ..") 
         print(self.new_clause_to_org_clause)
         
+        self.aliasDict = self.__alias_dict(self.tokens)
+        
         
     def __get_tokens(self, cleaned_query):
         
@@ -81,8 +83,17 @@ class Parser:
                 
         return val
         
-    
-    
+    def __alias_dict(self, tokens):
+        
+        aldict = {}
+        
+        for i in range(len(tokens)):
+            if tokens[i].ttype is Keyword and 'as' in tokens[i].value.lower():
+                aliasIs = tokens[i+1].value
+                realIs = tokens[i-1].value
+                aldict[aliasIs] = realIs
+                
+        return aldict
     
     def reconstruct_comparisons(self, token, sub_query_number):
         

@@ -2,7 +2,7 @@ import psycopg2
 import json
 
 class DBConnection:
-    def __init__(self, host="localhost", port = 5432, user="postgres", password="pratyush002", schema="tpch1g"):
+    def __init__(self, host="localhost", port = 5432, user="postgres", password="hello999", schema="public"):
         self.schema = schema
         self.conn = psycopg2.connect(host=host, port=port, user=user, password=password)
         
