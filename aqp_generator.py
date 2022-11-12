@@ -156,6 +156,61 @@ class Alternative_query_plan_generator:
 
         return root_list
 
+    def get_all_possible_join_aqp(self):
+        root_list = []
+
+        # hash join only
+        settings = "Set enable_mergejoin = OFF; Set enable_nestloop = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        # merge join only
+        settings = "Set enable_hashjoin = OFF; Set enable_nestloop = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        # nestloop join only
+        settings = "Set enable_hashjoin = OFF; Set enable_mergejoin = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        settings = "Set enable_hashjoin = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        settings = "Set enable_mergejoin = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        settings = "Set enable_nestloop = OFF;"
+        aqp = self.db.execute(
+            settings + 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
+        self.db.reset_settings()
+        aqp_json = json.loads(json.dumps(aqp[0][0]))
+        aqp_root = Query_plan_traverser(aqp_json).root
+        root_list.append(aqp_root)
+
+        return root_list
 
 # sql_query = """select * from part where p_brand = 'Brand#13' and p_size <> (select max(p_size) from part);"""
 
