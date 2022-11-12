@@ -56,7 +56,8 @@ def __deconstruct_conditions_map(condition_to_node_map,new_clause_to_org_clause 
 
 
 def main(sql_query):
-    db = DBConnection(host="localhost", port = 5432, user="postgres", password="pratyush002", schema="tpch1g")
+    # db = DBConnection(host="localhost", port = 5432, user="postgres", password="pratyush002", schema="tpch1g")
+    db = DBConnection()
     qp = Query_plan_generator(db, sql_query)
     qep_json = qp.get_dbms_qep()
     qep_json = json.loads(json.dumps(qep_json[0][0]))
@@ -75,10 +76,10 @@ def main(sql_query):
     ans = __combine_maps(dc,table_reads_map)
     
     qpt.print_tree()
-    return ans, parser.cleaned_query
+    return ans, parser.cleaned_query, parser.aliasDict
 
 
-answer,cleaned_query = main(sql_query)
+answer,cleaned_query, dikk = main(sql_query)
 
 
 print ("----------- ANS ----------------")
@@ -89,5 +90,9 @@ for k,v in answer.items():
 print("--------------- Cleaned Query ---------------")
 
 print(cleaned_query)
+    
+print("--------------- DICT ---------------")
+
+print(dikk)
     
     

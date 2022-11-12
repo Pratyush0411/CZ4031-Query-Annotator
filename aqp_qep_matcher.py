@@ -104,4 +104,14 @@ class Alternative_query_plan_matcher():
             
             
         
-        
+    def matchUsingList(self, qep, aqpList):
+        #qep = list of join nodes
+        #aqp = list of qeps of above type
+        num = len(qep)
+        for eachPlan in aqpList:
+            for currentIndex in range(num):
+                qNode = qep[currentIndex]
+                aNode = eachPlan[currentIndex]
+                print("\nComparing ", qNode, " and ", aNode)
+                self.match_qep_justfication(qNode, aNode)
+    
