@@ -1,10 +1,5 @@
 import queue
 from qep_node import Query_plan_node
-from qep_generator import Query_plan_generator
-from db import DBConnection
-import json
-from qep_matcher import QEP_matcher
-from parser import Parser
 
 class Query_plan_traverser:
     
@@ -132,8 +127,12 @@ class Query_plan_traverser:
         node.write_annotation(annotation=annotation_string)
         
     def __annotate_scans(self, scan:Query_plan_node):
-        
-        annotation_string = f"The relation {scan.relation_name} was scanned using {scan.node_type}. "
+        annotation_string = ""
+        if scan.relation_name is not None:
+            annotation_string += f"The relation {scan.relation_name} was scanned using {scan.node_type}. "
+        else:
+            annotation_string += f"{scan.node_type} was performed. "
+            scan.relation_name = "FROM"
         
         if 'Index' in scan.node_type:
             annotation_string+= f"The index condition is {scan.index_condition}. "

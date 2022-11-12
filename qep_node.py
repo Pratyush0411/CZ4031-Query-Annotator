@@ -26,12 +26,16 @@ class Query_plan_node(object):
         self.actual_time = actual_time
         self.description = description
         self.annotation = None
+        self.justification = None
+        self.justification_is_fair = False
         
     def write_annotation(self, annotation:str):
         self.annotation = annotation
     def add_child(self, child):
         self.children.append(child)
         
+    def write_justification(self, justification:str):
+        self.justification = justification
         
     def __str__(self):
         

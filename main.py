@@ -8,7 +8,7 @@ from parser import Parser
 from qep_traverser import Query_plan_traverser
 from queries import *
 
-sql_query = q1
+sql_query = adrian_q1
 
 def __combine_maps(deconstructed_map,table_reads_map):
     
@@ -54,7 +54,7 @@ def __deconstruct_conditions_map(condition_to_node_map,new_clause_to_org_clause 
 
 
 def main(sql_query):
-    db = DBConnection()
+    db = DBConnection(host="localhost", port = 5432, user="postgres", password="pratyush002", schema="tpch1g")
     qp = Query_plan_generator(db, sql_query)
     qep_json = qp.get_dbms_qep()
     qep_json = json.loads(json.dumps(qep_json[0][0]))
@@ -68,7 +68,7 @@ def main(sql_query):
     dc = __deconstruct_conditions_map(m, parser.new_clause_to_org_clause)
     ans = __combine_maps(dc,table_reads_map)
     
-    print(qpt.print_tree())
+    qpt.print_tree()
     return ans, parser.cleaned_query
 
 
@@ -80,7 +80,7 @@ for k,v in answer.items():
     
     print(f'{k} : {v}')
 
-print("---------------Cleaned Query---------------")
+print("--------------- Cleaned Query ---------------")
 
 print(cleaned_query)
     
