@@ -57,8 +57,11 @@ def matchything(qpt, aqp):
     q_a_dict = {}
     aqm = Alternative_query_plan_matcher()
     curQ = [qpt.root]
-    planRootList = [aqp.get_join_aqp()]
+    planRootList = [aqp.get_join_aqp()] + [aqp.get_scan_aqp()]
+    #print("No. of AQPs: ", len(planRootList))
+    counter=0
     while (len(planRootList) != 0):
+        #print("On AQP ", counter, " now\n")
         curA = planRootList.pop()
         #curA = planList
         while True:
@@ -67,13 +70,15 @@ def matchything(qpt, aqp):
                 while (len(curA) !=0):
                     aNode = curA.pop()
                     if qNode.is_conditional():
-                        print(qNode, aNode)
+                        #print(qNode, aNode,"\n")
                         aqm.match_qep_justfication(qNode, aNode)
             #end of level, go to child
             if len(qNode.children)!=0:
                 curQ = qNode.children
                 curA = aNode.children
-            else: break
+            else:
+                break
+        counter+=1
     return q_a_dict
 
 def main(sql_query):
