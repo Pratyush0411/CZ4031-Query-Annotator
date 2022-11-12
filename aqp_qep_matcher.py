@@ -1,6 +1,7 @@
 from thefuzz import fuzz
 import queue,math
 from qep_node import Query_plan_node
+from copy import copy
 
 class Alternative_query_plan_matcher():
     
@@ -14,12 +15,12 @@ class Alternative_query_plan_matcher():
         factor = math.ceil(float(qep_node.total_cost)/(float(aqp_node.total_cost)))
         justification_string = ''
         if factor > 1:
-            print(f"Crazzy results for{str(qep_node)} and {str(aqp_node)}")
+            print(f"Crazzy results for {str(qep_node)} and {str(aqp_node)}")
             qep_node.justification_is_fair = True
             justification_string += f"This is because the cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
             
         else:
-            print(f"Suprising results for{str(qep_node)} and {str(aqp_node)}")
+            print(f"Suprising results for {str(qep_node)} and {str(aqp_node)}")
             justification_string += f"Voila! The cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
             
         qep_node.write_justification(justification_string)
@@ -78,6 +79,28 @@ class Alternative_query_plan_matcher():
                 
         else:
             return
+        
+    def matchything(self, qep_root, aqp_roots):
+        q_a_dict = {}
+        curQ = [qep_root]
+        planRootList = aqp_roots
+        while (len(planRootList) != 0):
+            curA = planRootList.pop()
+            #curA = planList
+            while True:
+                while(len(curQ) != 0):
+                    qNode = curQ.pop()
+                    while (len(curA) !=0):
+                        aNode = curA.pop()
+                        if qNode.is_conditional():
+                            print(qNode, aNode)
+                            self.match_qep_justfication(qNode, aNode)
+                #end of level, go to child
+                if len(qNode.children)!=0:
+                    curQ = copy(qNode.children)
+                    curA = copy(aNode.children)
+                else: break
+        return q_a_dict
             
             
         

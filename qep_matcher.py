@@ -20,7 +20,10 @@ class QEP_matcher():
             x,_ = process.extractOne(item, condition_nodes, scorer=fuzz.token_sort_ratio)
             if item not in condition_to_qep_map:
                 
-                if condition_to_nodes_map[x].annotation is not None:
+                if condition_to_nodes_map[x].annotation is not None and condition_to_nodes_map[x].justification is not None:
+                    condition_to_qep_map[item] = x
+                    annotation_map[item] = condition_to_nodes_map[x].annotation + condition_to_nodes_map[x].justification
+                elif condition_to_nodes_map[x].annotation is not None:
                     condition_to_qep_map[item] = x
                     annotation_map[item] = condition_to_nodes_map[x].annotation
                 else:

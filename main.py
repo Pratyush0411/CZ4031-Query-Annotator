@@ -7,6 +7,7 @@ from qep_matcher import QEP_matcher
 from parser import Parser
 from qep_traverser import Query_plan_traverser
 from aqp_qep_matcher import Alternative_query_plan_matcher
+from aqp_generator import Alternative_query_plan_generator
 from queries import *
 
 sql_query = adrian_q1
@@ -59,9 +60,13 @@ def main(sql_query):
     qp = Query_plan_generator(db, sql_query)
     qep_json = qp.get_dbms_qep()
     qep_json = json.loads(json.dumps(qep_json[0][0]))
+    aqp = Alternative_query_plan_generator(db, sql_query)
+    aqm = Alternative_query_plan_matcher()
     qpt = Query_plan_traverser(qep_json)
     parser = Parser(sql_query)
-
+    aqp_roots = [aqp.get_join_aqp()]+[aqp.get_scan_aqp()]
+    print(aqp_roots)
+    aqm.matchything(qpt.root,aqp_roots)
     qm = QEP_matcher()
     condition_to_node_map, table_reads_map = qpt.get_conditional_nodes_and_table_reads()
     m,c = qm.string_matcher(parser.where_clauses,condition_to_node_map)

@@ -239,10 +239,7 @@ class Query_plan_traverser:
                 
                 if node is not None:
                     self.__write_annotations(node)
-                    # node_copy = copy.deepcopy(node)
-                    # node_copy.node_type = "Test Join"
-                    # aqp_matcher = Alternative_query_plan_matcher()
-                    # aqp_matcher.match_qep_justfication(node, node_copy)
+                
                     if node.is_conditional():
                         conditions = node.get_conditions()
                         for condition in conditions:
