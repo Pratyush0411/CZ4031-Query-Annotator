@@ -2,20 +2,7 @@ import turtle
 import tkinter as tk
 import tkinter.scrolledtext as st
 from tkinter import *
-# import main
-
-# # query = "select * from customer C, orders O where C.c_custkey = O.o_custkey and A = B"
-# annotationList = {"customer C": ["This is the first annotation"],
-#                   "C.c_custkey = O.o_custkey": ["This is the second annotation that is a bit longer than the other ones and spans more than one line"],
-#                   "A = B": ["This is the third annotation"], "orders O": ["This is the 4th one"]}
-
-# query = "SELECT n_name FROM nation, region,supplier WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA')"
-# annotationList = {"r_regionkey=n_regionkey": "First annotation",
-#                   "r_name <> 'AMERICA'": ["Second annotation"], "region": ["Third annotation", "Fourth annotation", "Fifth annotation"]}
-
-# query = "select * from part where p_brand = 'Brand#13' and p_size <> (select max(p_size) from part);"
-# annotationList = {"part": ["This is the annotation for the part in the outer query",
-#                            "This is the annotation for the part in the nested subquery"], "p_brand": ["This is the annotation for p_brand"]}
+import main
 
 
 class UserInterface:
@@ -65,16 +52,21 @@ class UserInterface:
         # self.label1 = tk.Label(root, text = query)
         # self.canvas.create_window(200,230, window = self.label1)
 
-        query = "select * from customer C, orders O where C.c_custkey = O.o_custkey and A = B"
+        query = """SELECT n_name
+                FROM nation, region,supplier
+                WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
+                (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
+                r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA')"""
+
         annotationList = {"customer C": ["This is the first annotation"],
                         "C.c_custkey = O.o_custkey": ["This is the second annotation that is a bit longer than the other ones and spans more than one line"],
                         "A = B": ["This is the third annotation"], "orders O": ["This is the 4th one"]}
 
-        # main.main(query)
-        self.instance = Annotator(query,annotationList)
-        wordannoidx, wordList = Annotator.annotation_matcher(self.instance)
+        main.main(query)
+        # self.instance = Annotator(query,annotationList)
+        # wordannoidx, wordList = Annotator.annotation_matcher(self.instance)
  
-        Annotator.turtle_drawer(self, wordannoidx, wordList, annotationList)
+        # Annotator.turtle_drawer(self, wordannoidx, wordList, annotationList)
     
 class Annotator:
     def __init__(self,query, annotationList):
