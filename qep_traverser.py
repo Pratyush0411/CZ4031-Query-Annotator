@@ -1,11 +1,7 @@
 import queue
 from qep_node import Query_plan_node
-from qep_generator import Query_plan_generator
-from db import DBConnection
-import json
-from qep_matcher import QEP_matcher
-from parser import Parser
-
+from aqp_qep_matcher import Alternative_query_plan_matcher
+import copy
 class Query_plan_traverser:
     
     
@@ -15,7 +11,7 @@ class Query_plan_traverser:
     
     def __return_qep_node(self,plan)->Query_plan_node:
         relation_name = schema = alias = group_key = sort_key = join_type = index_name = hash_condition = table_filter \
-            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = None
+            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = total_cost =  None
         if 'Relation Name' in plan:
             relation_name = plan['Relation Name']
         if 'Schema' in plan:
@@ -46,6 +42,8 @@ class Query_plan_traverser:
             actual_rows = plan['Actual Rows']
         if 'Actual Total Time' in plan:
             actual_time = plan['Actual Total Time']
+        if 'Total Cost' in plan:
+            total_cost = plan['Total Cost']
         if 'Subplan Name' in plan:
             if "returns" in plan['Subplan Name']:
                 name = plan['Subplan Name']
@@ -55,7 +53,7 @@ class Query_plan_traverser:
         # form a node form attributes created above
         return Query_plan_node(plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_condition, table_filter, index_condition, merge_condition, recheck_condition, join_filter,
-                            subplan_name, actual_rows, actual_time, description)
+                            subplan_name, actual_rows, actual_time, description,total_cost)
         
     def __bfs_intermediate_solutions(self, start:Query_plan_node):
         inter = []        
@@ -132,8 +130,12 @@ class Query_plan_traverser:
         node.write_annotation(annotation=annotation_string)
         
     def __annotate_scans(self, scan:Query_plan_node):
-        
-        annotation_string = f"The relation {scan.relation_name} was scanned using {scan.node_type}. "
+        annotation_string = ""
+        if scan.relation_name is not None:
+            annotation_string += f"The relation {scan.relation_name} was scanned using {scan.node_type}. "
+        else:
+            annotation_string += f"{scan.node_type} was performed. "
+            scan.relation_name = "FROM"
         
         if 'Index' in scan.node_type:
             annotation_string+= f"The index condition is {scan.index_condition}. "
@@ -237,6 +239,7 @@ class Query_plan_traverser:
                 
                 if node is not None:
                     self.__write_annotations(node)
+                
                     if node.is_conditional():
                         conditions = node.get_conditions()
                         for condition in conditions:
