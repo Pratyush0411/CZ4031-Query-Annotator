@@ -1,6 +1,7 @@
 import queue
 from qep_node import Query_plan_node
-
+from aqp_qep_matcher import Alternative_query_plan_matcher
+import copy
 class Query_plan_traverser:
     
     
@@ -10,7 +11,7 @@ class Query_plan_traverser:
     
     def __return_qep_node(self,plan)->Query_plan_node:
         relation_name = schema = alias = group_key = sort_key = join_type = index_name = hash_condition = table_filter \
-            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = None
+            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = total_cost =  None
         if 'Relation Name' in plan:
             relation_name = plan['Relation Name']
         if 'Schema' in plan:
@@ -41,6 +42,8 @@ class Query_plan_traverser:
             actual_rows = plan['Actual Rows']
         if 'Actual Total Time' in plan:
             actual_time = plan['Actual Total Time']
+        if 'Total Cost' in plan:
+            total_cost = plan['Total Cost']
         if 'Subplan Name' in plan:
             if "returns" in plan['Subplan Name']:
                 name = plan['Subplan Name']
@@ -50,7 +53,7 @@ class Query_plan_traverser:
         # form a node form attributes created above
         return Query_plan_node(plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_condition, table_filter, index_condition, merge_condition, recheck_condition, join_filter,
-                            subplan_name, actual_rows, actual_time, description)
+                            subplan_name, actual_rows, actual_time, description,total_cost)
         
     def __bfs_intermediate_solutions(self, start:Query_plan_node):
         inter = []        
@@ -236,6 +239,10 @@ class Query_plan_traverser:
                 
                 if node is not None:
                     self.__write_annotations(node)
+                    # node_copy = copy.deepcopy(node)
+                    # node_copy.node_type = "Test Join"
+                    # aqp_matcher = Alternative_query_plan_matcher()
+                    # aqp_matcher.match_qep_justfication(node, node_copy)
                     if node.is_conditional():
                         conditions = node.get_conditions()
                         for condition in conditions:

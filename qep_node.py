@@ -5,7 +5,7 @@ class Query_plan_node(object):
     
     def __init__(self, node_type, relation_name, schema, alias, group_key, sort_key, join_type, index_name, 
             hash_condition, table_filter, index_condition, merge_condition, recheck_condition, join_filter, subplan_name, actual_rows,
-            actual_time,description):
+            actual_time,description,total_cost):
         self.node_type = node_type
         self.children = []
         self.relation_name = relation_name
@@ -25,6 +25,7 @@ class Query_plan_node(object):
         self.actual_rows = actual_rows
         self.actual_time = actual_time
         self.description = description
+        self.total_cost = total_cost
         self.annotation = None
         self.justification = None
         self.justification_is_fair = False
@@ -61,6 +62,9 @@ class Query_plan_node(object):
             
         if self.join_filter is not None:
             print_str += f'Join filter: {self.join_filter} '
+            
+        if self.justification is not None:
+            print_str += f'Justification: {self.justification} '
         
 
         return print_str

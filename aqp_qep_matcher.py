@@ -1,17 +1,17 @@
 from thefuzz import fuzz
-import queue
+import queue,math
 from qep_node import Query_plan_node
 
 class Alternative_query_plan_matcher():
     
     
     
-    def __init__(self) -> None:
-        self.threshold = 95
+    def __init__(self, threshold = 95) -> None:
+        self.threshold = threshold
     
     def __write_justification(self,qep_node:Query_plan_node, aqp_node:Query_plan_node):
         
-        factor = float(qep_node.actual_time)//float(aqp_node.actual_time)
+        factor = math.ceil(float(qep_node.total_cost)/(float(aqp_node.total_cost)))
         justification_string = ''
         if factor > 1:
             print(f"Crazzy results for{str(qep_node)} and {str(aqp_node)}")
@@ -19,6 +19,7 @@ class Alternative_query_plan_matcher():
             justification_string += f"This is because the cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
             
         else:
+            print(f"Suprising results for{str(qep_node)} and {str(aqp_node)}")
             justification_string += f"Voila! The cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
             
         qep_node.write_justification(justification_string)

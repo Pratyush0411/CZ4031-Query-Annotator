@@ -6,6 +6,7 @@ import json
 from qep_matcher import QEP_matcher
 from parser import Parser
 from qep_traverser import Query_plan_traverser
+from aqp_qep_matcher import Alternative_query_plan_matcher
 from queries import *
 
 sql_query = adrian_q1
