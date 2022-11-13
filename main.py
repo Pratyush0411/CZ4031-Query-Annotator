@@ -4,7 +4,7 @@ from qep_generator import Query_plan_generator
 from db import DBConnection
 import json
 from qep_matcher import QEP_matcher
-from parser import Parser
+from parserr import Parser
 from qep_traverser import Query_plan_traverser
 from aqp_qep_matcher import Alternative_query_plan_matcher
 from aqp_generator import Alternative_query_plan_generator
@@ -12,36 +12,36 @@ from queries import *
 
 sql_query = adrian_q1
 
-def __combine_maps(deconstructed_map,table_reads_map):
-    
-    
+
+def __combine_maps(deconstructed_map, table_reads_map):
+
     m = {}
-    
-    for k,v in deconstructed_map.items():
-        
+
+    for k, v in deconstructed_map.items():
+
         m[k] = v
-    
-    for k,v in table_reads_map.items():
-        
+
+    for k, v in table_reads_map.items():
+
         if k in m:
             v1 = m[k]
-            
+
             if type(v) is not list:
                 v = [v]
             if type(v1) is not list:
-                v1 = [v1]    
-            
+                v1 = [v1]
+
             m[k] = v+v1
         else:
             m[k] = v
-    
-    return m        
-    
-    
-def __deconstruct_conditions_map(condition_to_node_map,new_clause_to_org_clause ):
+
+    return m
+
+
+def __deconstruct_conditions_map(condition_to_node_map, new_clause_to_org_clause):
     deconstructed_map = {}
-    
-    for k,v in condition_to_node_map.items():
+
+    for k, v in condition_to_node_map.items():
         if new_clause_to_org_clause[k] not in deconstructed_map:
             deconstructed_map[new_clause_to_org_clause[k]] = v
         else:
@@ -50,9 +50,8 @@ def __deconstruct_conditions_map(condition_to_node_map,new_clause_to_org_clause 
                 v1 = [v1]
             v1.append(v)
             deconstructed_map[new_clause_to_org_clause[k]] = v1
-    
+
     return deconstructed_map
-    
 
 
 def main(sql_query):
@@ -67,14 +66,14 @@ def main(sql_query):
     parser = Parser(sql_query)
     aqp_roots = [aqp.get_join_aqp()]+[aqp.get_scan_aqp()]
     print(aqp_roots)
-    aqm.matchything(qpt.root,aqp_roots)
+    aqm.matchything(qpt.root, aqp_roots)
     qm = QEP_matcher()
     condition_to_node_map, table_reads_map = qpt.get_conditional_nodes_and_table_reads()
-    m,c = qm.string_matcher(parser.where_clauses,condition_to_node_map)
+    m, c = qm.string_matcher(parser.where_clauses, condition_to_node_map)
 
     dc = __deconstruct_conditions_map(m, parser.new_clause_to_org_clause)
-    ans = __combine_maps(dc,table_reads_map)
-    
+    ans = __combine_maps(dc, table_reads_map)
+
     qpt.print_tree()
     return ans, parser.cleaned_query
 
@@ -84,12 +83,9 @@ def main(sql_query):
 
 # print ("----------- ANS ----------------")
 # for k,v in answer.items():
-    
+
 #     print(f'{k} : {v}')
 
 # print("--------------- Cleaned Query ---------------")
 
 # print(cleaned_query)
-    
-    
-    
