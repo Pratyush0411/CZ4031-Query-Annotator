@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.scrolledtext as st
 from tkinter import *
 from tkinter import ttk
+import time
 import main
 
 # select n_nationkey from nation where n_nationkey = 3 union select s_nationkey from supplier;
@@ -118,23 +119,25 @@ class UserInterface:
     def clear_screen(self):
         self.screen.clearscreen()
 
-    def show_progressBar(self):
-        print("======================== SHOWING PROGRESS BAR ========================")
-        self.progressLabel.pack(side=tk.BOTTOM)
+    def show_progressLabel(self):
+        print("======================== SHOWING PROGRESS LABEL ========================")
+        self.progressLabel.grid(column = 0, row = 5)
         # self.progressBar.pack(side = tk.BOTTOM)
         # self.progressBar.start()
 
-    def hide_progressBar(self):
-        print("======================== HIDING PROGRESS BAR ========================")
-        self.progressLabel.pack_forget()
+    def hide_progressLabel(self):
+        print("======================== HIDING PROGRESS LABEL ========================")
+        self.progressLabel.grid_remove()
         # self.progressBar.stop()
         # self.progressBar.pack_forget()
 
     def show_errorLabel(self):
-        self.errorLabel.pack(side=tk.BOTTOM)
+        print("======================== SHOWING ERROR LABEL ========================")
+        self.errorLabel.grid(column = 0, row = 5)
 
     def hide_errorLabel(self):
-        self.errorLabel.pack_forget()
+        print("======================== HIDING ERROR LABEL ========================")
+        self.errorLabel.grid_remove()
 
     def get_input(self):
         self.clear_screen()
@@ -142,17 +145,26 @@ class UserInterface:
 
         print("======================== RETRIEVED QUERY: ========================", '\n', query)
         print("======================== RUNNING ALGORITHM... ========================")
+        
         try:
-            self.hide_errorLabel
+            self.errorLabel.grid_remove()
+        except:
+            pass
+
+        self.progressLabel.grid(column = 0, row = 5)
+        
+
+        try:
             ans, cleaned_query = main.main(query)
         except:
+            self.hide_progressLabel()
             self.show_errorLabel()
 
         if ans == {}:
+            self.hide_progressLabel()
             self.show_errorLabel()
 
-        print("======================== CLEANED QUERY: ========================",
-              '\n', cleaned_query)
+        print("======================== CLEANED QUERY: ========================",'\n', cleaned_query)
         print("======================== DICTIONARY: ========================", '\n',  ans)
         self.TurtleCanvas.update()
         print("Turtle canvas width: ", self.TurtleCanvas.winfo_width())
@@ -164,10 +176,11 @@ class UserInterface:
             "======================== WORD LIST: ========================", '\n', wordList)
         print("======================== ANNOTATION INDEX: ========================",
               '\n', wordannoidx)
-        self.hide_progressBar()
+        self.hide_progressLabel()
         print("======================== BEGINNING DRAWING ========================")
         Annotator.turtle_drawer(self, wordannoidx, wordList, ans,
                                 self.TurtleCanvas.winfo_height(), self.TurtleCanvas.winfo_width())
+        print("======================== DRAWING FINISHED ========================")
         
 
        
@@ -199,7 +212,7 @@ class Annotator:
         for k in keyList:
             # print("Finding indexes for " + k)
             if type(self.annotationList[k]) == list:  # If the value is a list
-                print("Value is a list")
+                # print("Value is a list")
                 count = len(self.annotationList[k])
             else:
                 count = 1
@@ -211,7 +224,7 @@ class Annotator:
                 # Find first occurence of key k
                 # print(tquery)
                 tindex = tquery.find(k, strt, len(tquery))
-                print(tindex)
+                # print(tindex)
                 # Check if actually the annotee, not part of bigger word
                 # If the found word is surrounded by letters
                 if tquery[tindex-1] not in specList or (tindex + len(k) < len(tquery) and (tquery[tindex + len(k)] not in specList)):
@@ -260,9 +273,9 @@ class Annotator:
 
     def turtle_drawer(self, wordannoidx, wordList, annotationList, aheight, awidth):
 
-        ftsz = 10
+        ftsz = 12
         ft = ("Segoe", ftsz)
-        aftsz = 8
+        aftsz = 10
         aft = ("Segoe", aftsz)
         annodiv = 0
 
