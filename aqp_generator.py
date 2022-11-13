@@ -15,6 +15,7 @@ class Alternative_query_plan_generator:
             'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON ) ' + self.sql_query)
         self.qep_json = json.loads(json.dumps(self.qep[0][0]))
         self.get_qep_plans(self.qep_json[0]["Plan"])
+        self.aqp_roots = self.get_join_aqp()+self.get_scan_aqp()
 
     def get_qep_plans(self, dictNode):
         if "Scan" in dictNode["Node Type"]:
@@ -105,6 +106,35 @@ class Alternative_query_plan_generator:
         root_list.append(aqp_root)
 
         return root_list
+    
+    def get_join_order_trees(self):
+        
+        join_order_trees = []
+        
+        qpt = Query_plan_traverser()
+        for root in self.aqp_roots:
+            print("____Join Order____")
+            jt= qpt.create_order_trees(root)
+            for item in jt:
+                print([str(i) for i in item])
+            join_order_trees.append(jt)
+            
+        return join_order_trees
+    
+    def get_scan_order_trees(self):
+        
+        scan_order_trees = []
+        
+        qpt = Query_plan_traverser()
+        for root in self.aqp_roots:
+            print("____Scan Order____")
+            jt= qpt.create_order_trees(root, ['Scan'])
+            for item in jt:
+                print([str(i) for i in item])
+            scan_order_trees.append(jt)
+            
+        return scan_order_trees
+        
 
     def get_scan_aqp(self):
         root_list = []

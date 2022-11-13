@@ -5,13 +5,14 @@ import copy
 class Query_plan_traverser:
     
     
-    def __init__(self, qep_json) -> None:
-        self.root = self.__create_qep_tree(qep_json)
+    def __init__(self, qep_json = None) -> None:
+        if qep_json is not None:
+            self.root = self.__create_qep_tree(qep_json)
         pass
     
     def __return_qep_node(self,plan)->Query_plan_node:
         relation_name = schema = alias = group_key = sort_key = join_type = index_name = hash_condition = table_filter \
-            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = total_cost =  None
+            = index_condition = merge_condition = recheck_condition = join_filter = subplan_name = actual_rows = actual_time = description = total_cost = loops=  None
         if 'Relation Name' in plan:
             relation_name = plan['Relation Name']
         if 'Schema' in plan:
@@ -44,16 +45,19 @@ class Query_plan_traverser:
             actual_time = plan['Actual Total Time']
         if 'Total Cost' in plan:
             total_cost = plan['Total Cost']
+        if 'Actual Loops' in plan:
+            loops = plan['Actual Loops']
         if 'Subplan Name' in plan:
             if "returns" in plan['Subplan Name']:
                 name = plan['Subplan Name']
                 subplan_name = name[name.index("$"):-1]
             else:
                 subplan_name = plan['Subplan Name']
+                
         # form a node form attributes created above
         return Query_plan_node(plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_condition, table_filter, index_condition, merge_condition, recheck_condition, join_filter,
-                            subplan_name, actual_rows, actual_time, description,total_cost)
+                            subplan_name, actual_rows, actual_time, description,total_cost,loops)
         
     def __bfs_intermediate_solutions(self, start:Query_plan_node):
         inter = []        
@@ -125,7 +129,7 @@ class Query_plan_traverser:
            
         annotation_string+= f'It was performed on {inter[0]} and {inter[1]}. '
         if node.join_filter is not None:
-            annotation_string+= f'The join filter condition was {node.join_filter}'
+            annotation_string+= f'The join filter condition was {node.join_filter}. '
         
         node.write_annotation(annotation=annotation_string)
         
@@ -221,8 +225,43 @@ class Query_plan_traverser:
             print(print_str)    
             q = c
             level +=1
+    
+    def create_order_trees(self,root, string_arr = ['Join','Nested Loop']):        
+        
+        level = 1
+        
+        join_order_tree = []
+        q = [root]
+        
+        
+        while (len(q) != 0):
+            c = []
+            j = []
+            for node in q:
+                
+                if node is not None:
+                    
+                    for i in string_arr:
+                        
+                        if i in node.node_type :
+                            j.append(node)
+                            if i == 'Nested Loop':
+                                self.__write_annotations(node)
+                            break
+                    
+                    
+                    
+                    if len(node.children) != 0:
+                        c+= node.children
+                        
+               
+            q = c
+            if len(j) != 0:
+                join_order_tree.append(j)
+            level +=1
             
-            
+        return join_order_tree
+    
     def get_conditional_nodes_and_table_reads(self,):
         
         
@@ -239,7 +278,6 @@ class Query_plan_traverser:
                 
                 if node is not None:
                     self.__write_annotations(node)
-                
                     if node.is_conditional():
                         conditions = node.get_conditions()
                         for condition in conditions:
@@ -247,6 +285,9 @@ class Query_plan_traverser:
                     elif 'Scan' in node.node_type:
                         
                         if node.annotation is not None:
+                    
+                            if node.node_type == 'Seq Scan':
+                                node.annotation += "This is because there was no suitable index on the relation."
                             if node.relation_name in annotations_table_reads:
                             
                                 v = annotations_table_reads[node.relation_name]

@@ -10,7 +10,7 @@ from aqp_qep_matcher import Alternative_query_plan_matcher
 from aqp_generator import Alternative_query_plan_generator
 from queries import *
 
-sql_query = adrian_q1
+sql_query = adrian_q2
 
 def __combine_maps(deconstructed_map,table_reads_map):
     
@@ -65,9 +65,15 @@ def main(sql_query):
     aqm = Alternative_query_plan_matcher()
     qpt = Query_plan_traverser(qep_json)
     parser = Parser(sql_query)
-    aqp_roots = [aqp.get_join_aqp()]+[aqp.get_scan_aqp()]
-    print(aqp_roots)
-    aqm.matchything(qpt.root,aqp_roots)
+    
+    qep_jt= qpt.create_order_trees(qpt.root)
+    aqp_jt = aqp.get_join_order_trees()
+    qep_st = qpt.create_order_trees(qpt.root,['Scan'])
+    aqp_st = aqp.get_scan_order_trees()
+    
+    aqm.matchUsingList(qep_jt,aqp_jt)
+    aqm.matchUsingList(qep_st, aqp_st )
+    
     qm = QEP_matcher()
     condition_to_node_map, table_reads_map = qpt.get_conditional_nodes_and_table_reads()
     m,c = qm.string_matcher(parser.where_clauses,condition_to_node_map)
@@ -76,10 +82,10 @@ def main(sql_query):
     ans = __combine_maps(dc,table_reads_map)
     
     qpt.print_tree()
-    return ans, parser.cleaned_query, parser.aliasDict
+    return ans, parser.cleaned_query
 
 
-answer,cleaned_query, dikk = main(sql_query)
+answer,cleaned_query= main(sql_query)
 
 
 print ("----------- ANS ----------------")
@@ -90,9 +96,5 @@ for k,v in answer.items():
 print("--------------- Cleaned Query ---------------")
 
 print(cleaned_query)
-    
-print("--------------- DICT ---------------")
-
-print(dikk)
     
     

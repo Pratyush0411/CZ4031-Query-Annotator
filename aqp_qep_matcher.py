@@ -12,16 +12,16 @@ class Alternative_query_plan_matcher():
     
     def __write_justification(self,qep_node:Query_plan_node, aqp_node:Query_plan_node):
         
-        factor = math.ceil(float(qep_node.total_cost)/(float(aqp_node.total_cost)))
+        factor = math.ceil((aqp_node.total_cost)/(qep_node.total_cost))
         justification_string = ''
         if factor > 1:
             print(f"Crazzy results for {str(qep_node)} and {str(aqp_node)}")
             qep_node.justification_is_fair = True
-            justification_string += f"This is because the cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
+            justification_string += f"This is because the cost of {aqp_node.node_type} is {factor} times that of {qep_node.node_type}"
             
         else:
             print(f"Suprising results for {str(qep_node)} and {str(aqp_node)}")
-            justification_string += f"Voila! The cost of {qep_node.node_type} is {factor} times that of {aqp_node.node_type}"
+            justification_string += f"Surprising! The cost of {aqp_node.node_type} is {factor} times that of {qep_node.node_type}"
             
         qep_node.write_justification(justification_string)
         
@@ -65,7 +65,7 @@ class Alternative_query_plan_matcher():
         if not qep_node.justification_is_fair:
             
             
-            if 'Join' in qep_node.node_type:
+            if ('Join' in qep_node.node_type or 'Nested Loop' in qep_node.node_type) and ('Join' in aqp_node.node_type or 'Nested Loop' in aqp_node.node_type):
             
                 self.__match_join_nodes(qep_node,aqp_node)
         
@@ -73,36 +73,10 @@ class Alternative_query_plan_matcher():
                 
                 self.__match_scan_nodes(qep_node,aqp_node)
             
-            elif 'Nested Loop' in qep_node.node_type:
-                
-                self.__match_join_nodes(qep_node,aqp_node)
                 
         else:
             return
-        
-    def matchything(self, qep_root, aqp_roots):
-        q_a_dict = {}
-        curQ = [qep_root]
-        planRootList = aqp_roots
-        while (len(planRootList) != 0):
-            curA = planRootList.pop()
-            #curA = planList
-            while True:
-                while(len(curQ) != 0):
-                    qNode = curQ.pop()
-                    while (len(curA) !=0):
-                        aNode = curA.pop()
-                        if qNode.is_conditional():
-                            print(qNode, aNode)
-                            self.match_qep_justfication(qNode, aNode)
-                #end of level, go to child
-                if len(qNode.children)!=0:
-                    curQ = copy(qNode.children)
-                    curA = copy(aNode.children)
-                else: break
-        return q_a_dict
-            
-            
+                
         
     def matchUsingList(self, qep, aqpList):
         #qep = list of join nodes
@@ -110,8 +84,13 @@ class Alternative_query_plan_matcher():
         num = len(qep)
         for eachPlan in aqpList:
             for currentIndex in range(num):
-                qNode = qep[currentIndex]
-                aNode = eachPlan[currentIndex]
-                print("\nComparing ", qNode, " and ", aNode)
-                self.match_qep_justfication(qNode, aNode)
+                
+                for qNode in qep[currentIndex]:
+                    if currentIndex < len(eachPlan):
+                        for aNode in eachPlan[currentIndex]:
+                            
+                            # print("\nComparing ", qNode, " and ", aNode)
+                            self.match_qep_justfication(qNode, aNode)
+                    else:
+                        continue
     
