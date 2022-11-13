@@ -244,7 +244,7 @@ class Annotator:
         ft = ("Segoe", ftsz)
         aftsz = 8
         aft = ("Segoe", aftsz)
-        annodiv = 1/10
+        annodiv = 0
 
         self.pen = turtle.RawTurtle(self.screen, shape="turtle")
         self.pen.color("green")
