@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import ttk
 import main
 
+# select n_nationkey from nation where n_nationkey = 3 union select s_nationkey from supplier;
 
 class UserInterface:
 
@@ -24,19 +25,34 @@ class UserInterface:
 
         # LEFT FRAME
         self.Lframe = tk.Frame(
-            self.master, width=self.canvaswidth/2, height=self.canvasheight, bg="GREEN")
+            self.master, width=self.canvaswidth/2, height=self.canvasheight)
         self.Lframe.grid(column=0, row=0)
 
         # RIGHT FRAME
         self.Rframe = tk.Frame(
-            self.master, width=self.canvaswidth/2, height=self.canvasheight, bg="BLUE")
+            self.master, width=self.canvaswidth/2, height=self.canvasheight)
         self.Rframe.grid(column=1, row=0)
+
+
+        
+        
 
         # TURTLE CANVAS
         self.TurtleCanvas = tk.Canvas(
-            self.Lframe, width=self.canvaswidth/2, height=self.canvasheight, bg="BLUE")
+            self.Lframe, width=self.canvaswidth/2, height=self.canvasheight)
         self.TurtleCanvas.grid(column=0, row=0)
 
+        self.screen = turtle.TurtleScreen(self.TurtleCanvas)
+        self.screen.bgcolor("WHITE")
+
+        # SCROLLBAR
+        self.scrollbar = Scrollbar(self.Lframe, orient = 'vertical' )
+        self.scrollbar.config(command = self.TurtleCanvas.yview) 
+        self.TurtleCanvas.config(yscrollcommand= self.scrollbar.set)
+        self.scrollbar.grid(column = 1, row = 0, sticky = N+S+W)
+        
+        
+        
         # self.canvas = tk.Canvas(master)
         # self.canvas.config(width=self.canvaswidth,
         #                    height=self.canvasheight, bg="blue")
@@ -58,10 +74,12 @@ class UserInterface:
         # )/2, height=self.canvas.winfo_height()/2)
         # self.turtlecanvas.pack()
 
-        # scrollbar = Scrollbar()
-        # self.textfield = tk.Text(root, height = 20, width = 40, font= ("Segoe",12), yscrollcommand= scrollbar.set)
-        # scrollbar.config(command = self.textfield.yview)
-        # scrollbar.pack(side = RIGHT, fill = Y)
+        # turtle.ScrolledCanvas(self.TurtleCanvas)
+        
+
+        
+        # # scrollbar.pack(side = RIGHT, fill = Y)
+        # scrollbar.grid(column = 1, row = 0)
 
         self.textfield = st.ScrolledText(
             self.Rframe, height=self.textheight, width=self.textwidth, font=self.font)
@@ -81,7 +99,7 @@ class UserInterface:
         self.errorLabel.config(font=self.font, bg="RED", fg="WHITE")
 
         self.label = tk.Label(
-            self.Rframe, text="Enter your query to optimize: ")
+            self.Rframe, text="Enter your query to annotate: ")
         self.label.config(font=self.font)
 
         self.label.grid(column=0, row=0)
@@ -92,8 +110,7 @@ class UserInterface:
         # self.sendQueryButton.pack()
         # self.cancelButton.pack(side = tk.RIGHT)
 
-        self.screen = turtle.TurtleScreen(self.TurtleCanvas)
-        self.screen.bgcolor("YELLOW")
+        
 
     def clear_input(self):
         self.textfield.delete("1.0", "end")
@@ -151,6 +168,9 @@ class UserInterface:
         print("======================== BEGINNING DRAWING ========================")
         Annotator.turtle_drawer(self, wordannoidx, wordList, ans,
                                 self.TurtleCanvas.winfo_height(), self.TurtleCanvas.winfo_width())
+        
+
+       
 
 
 class Annotator:
@@ -163,7 +183,7 @@ class Annotator:
     def annotation_matcher(self):
         # Pre-processing of query in order to return the indexes of the annotee
         tquery = self.query
-        specList = ["(", ")", " ", ",", "\0"]
+        specList = ["(", ")", " ", ",", ';', "\0"]
         idsort = []
         annoidx = {}  # "annotee index number" : "annotee"
 
@@ -191,7 +211,7 @@ class Annotator:
                 # Find first occurence of key k
                 # print(tquery)
                 tindex = tquery.find(k, strt, len(tquery))
-                # print(tindex)
+                print(tindex)
                 # Check if actually the annotee, not part of bigger word
                 # If the found word is surrounded by letters
                 if tquery[tindex-1] not in specList or (tindex + len(k) < len(tquery) and (tquery[tindex + len(k)] not in specList)):
@@ -279,7 +299,7 @@ class Annotator:
                 # Writing and pointing
                 curpos = self.pen.pos()
                 self.pen.setheading(90)
-                self.pen.forward(16)
+                self.pen.forward(8)
                 self.pen.setheading(180)
                 self.pen.forward(len(wordList[i]) * 0.5 * ftsz)
                 self.pen.setheading(0)
@@ -309,7 +329,8 @@ class Annotator:
                         self.pen.setposition(
                             (annodiv)*wwidth + 5, self.pen.pos()[1])
                         self.pen.setheading(0)
-                annopos = self.pen.pos()[1] - aftsz - 7
+                        self.TurtleCanvas.configure(scrollregion=self.TurtleCanvas.bbox("all")) # TO UPDATE THE TURTLECANVAS SO THAT SCROLLBAR IS UPDATED
+                annopos = self.pen.pos()[1] - aftsz - 50
                 self.pen.setposition(curpos)
                 self.pen.color("black")
                 wordannoidx.pop(0)
@@ -329,6 +350,7 @@ class Annotator:
                 self.pen.forward(ftsz+5)
                 self.pen.setposition(-(1/2) * wwidth + 5, self.pen.pos()[1])
                 self.pen.setheading(0)
+                
 
         self.pen.setposition(wwidth, wheight)
         # turtle.done
@@ -336,6 +358,7 @@ class Annotator:
         # window.exitonclick()
 
         # turtle.done
+        
 
 
 if __name__ == '__main__':
