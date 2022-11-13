@@ -44,7 +44,6 @@ select
       n_name
     order by
       revenue desc;
-
 '''
 lantern_q2 = '''
 select
@@ -90,9 +89,7 @@ select
       l_year;
 
 '''
-index_only_q1 ='''
-select n_nationkey from nation where n_nationkey = 3 union select s_nationkey from supplier;
-'''
+
 adrian_q1 = '''
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
@@ -107,6 +104,10 @@ where
 	and p_container = 'wrap jar'
 	and l_quantity < avg_quantity  
 limit 1;
+'''
+
+index_only_q1 ='''
+select n_nationkey from nation where n_nationkey = 3 union select s_nationkey from supplier;
 '''
 
 adrian_q2 = '''
