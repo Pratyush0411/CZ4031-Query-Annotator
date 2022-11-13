@@ -2,12 +2,14 @@ import turtle
 import tkinter as tk
 import tkinter.scrolledtext as st
 from tkinter import *
+from tkinter import ttk
 import main
 
 
 class UserInterface:
 
     font = ("Segoe",12)
+
     def __init__(self, master):
         self.master = master
         self.master.title("CZ4031-QUERY-ANNOTATOR")
@@ -25,6 +27,12 @@ class UserInterface:
         self.clearInputButton = tk.Button(self.master, text = "Clear input", command = self.clear_input).place(x = 1400, y = 400)
         self.clearScreenButton = tk.Button(self.master, text = "Clear screen", command = self.clear_screen).place(x = 1350, y = 450)
 
+        self.progressLabel = tk.Label(self.master, text = "RUNNING OPTIMIZER... PLEASE WAIT")
+        self.progressLabel.config(font = self.font, bg = "GREEN", fg = "WHITE")
+
+        self.errorLabel = tk.Label(self.master, text = "PLEASE INPUT AN APPROPRIATE SQL QUERY")
+        self.errorLabel.config(font = self.font, bg = "RED", fg = "WHITE")
+
         self.label = tk.Label(root, text = "Enter your query to optimize: ")
         self.label.config(font = self.font)
 
@@ -37,7 +45,7 @@ class UserInterface:
         self.screen.bgcolor("white")
         
 
-        print(self.screen.window_height(), self.screen.window_width())
+        # print(self.screen.window_height(), self.screen.window_width())
         # self.canvas.create_window(300, 300, window = self.button)
         
     def clear_input(self):
@@ -45,28 +53,46 @@ class UserInterface:
     
     def clear_screen(self):
         self.screen.clearscreen()
+
+    def show_progressBar(self):
+        print("======================== SHOWING PROGRESS BAR ========================")
+        self.progressLabel.pack(side = tk.BOTTOM)
+        # self.progressBar.pack(side = tk.BOTTOM)
+        # self.progressBar.start()
+    def hide_progressBar(self):
+        print("======================== HIDING PROGRESS BAR ========================")
+        self.progressLabel.pack_forget()
+        # self.progressBar.stop()
+        # self.progressBar.pack_forget()
         
+    def show_errorLabel(self):
+        self.errorLabel.pack(side = tk.BOTTOM)
+    def hide_errorLabel(self):
+        self.errorLabel.pack_forget()
+
     def get_input(self):
+        self.clear_screen()
         query = self.textfield.get("1.0","end")
-        print(query)
-        # self.label1 = tk.Label(root, text = query)
-        # self.canvas.create_window(200,230, window = self.label1)
+        self.show_progressBar()
+        print("======================== RETRIEVED QUERY: ========================" , '\n', query)
+        print("======================== RUNNING ALGORITHM... ========================")
+        try:
+            self.hide_errorLabel
+            ans, cleaned_query = main.main(query)
+        except:
+            self.show_errorLabel()
+        
+        
+        print("======================== CLEANED QUERY: ========================" , '\n', cleaned_query)
+        print("======================== DICTIONARY: ========================", '\n',  ans)
+        self.instance = Annotator(cleaned_query,ans)
+        wordannoidx, wordList = Annotator.annotation_matcher(self.instance)
+        print("======================== WORD LIST: ========================",'\n', wordList)
+        print("======================== ANNOTATION INDEX: ========================", '\n', wordannoidx)
+        self.hide_progressBar()
+        print("======================== BEGINNING DRAWING ========================")
+        Annotator.turtle_drawer(self, wordannoidx, wordList, ans)
 
-        query = """SELECT n_name
-                FROM nation, region,supplier
-                WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
-                (SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
-                r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA')"""
-
-        annotationList = {"customer C": ["This is the first annotation"],
-                        "C.c_custkey = O.o_custkey": ["This is the second annotation that is a bit longer than the other ones and spans more than one line"],
-                        "A = B": ["This is the third annotation"], "orders O": ["This is the 4th one"]}
-
-        main.main(query)
-        # self.instance = Annotator(query,annotationList)
-        # wordannoidx, wordList = Annotator.annotation_matcher(self.instance)
- 
-        # Annotator.turtle_drawer(self, wordannoidx, wordList, annotationList)
     
 class Annotator:
     def __init__(self,query, annotationList):
@@ -93,24 +119,28 @@ class Annotator:
         for k in keyList:
             # print("Finding indexes for " + k)
             if type(self.annotationList[k]) == list: # If the value is a list
+                print("Value is a list")
                 count = len(self.annotationList[k])
             else:
                 count = 1
             # print("Start count: " + str(count))
             strt = 0
             while count > 0:  # While there are still instances of k not found yet
+                # print("COUNT:", count)
                 # print("Count: " + str(count))
                 # Find first occurence of key k
-                print(tquery)
+                # print(tquery)
                 tindex = tquery.find(k, strt, len(tquery))
-                print(tindex)
+                # print(tindex)
                 # Check if actually the annotee, not part of bigger word
                 # If the found word is surrounded by letters
                 if tquery[tindex-1] not in specList or (tindex + len(k) < len(tquery) and (tquery[tindex + len(k)] not in specList)):
+                    # print("A")
                     # Set the next loop to start the find after this occurence
                     strt = tindex + len(k)
                     continue  # go to next loop
                 else:  # Means that proper occurence was found
+                    # print("B")
                     idsort.append(tindex)  # Append the index of k to the idsort list
                     annoidx[tindex] = k  # Add the index to the dictionary
                     tquery = tquery[:tindex] + " " * len(k) + tquery[(tindex+len(k)):]
@@ -149,7 +179,9 @@ class Annotator:
     def turtle_drawer(self, wordannoidx, wordList, annotationList):
 
         ftsz = 16
+        ft = ("Segoe", ftsz)
         aftsz = 12
+        aft = ("Segoe", aftsz)
 
         self.pen = turtle.RawTurtle(self.screen,shape = "turtle")
         self.pen.color("green")
@@ -176,7 +208,7 @@ class Annotator:
                 self.pen.end_fill()
                 self.pen.penup()
                 self.pen.color("black")
-            self.pen.write(wordList[i], font= ("Segoe",16))
+            self.pen.write(wordList[i], font= ft)
             self.pen.forward(len(wordList[i]) * 14)
             # For annotating
             if wordannoidx and i == wordannoidx[0]:  # ANNOTATION FOUND
@@ -194,6 +226,7 @@ class Annotator:
                 self.pen.color("red")
                 annopos -= interv
                 # PRINTNG OUT THE ANNOTATIONS
+                
                 # print(annotationList[wordList[i]])
                 # print("Annotation to be printed: " + ttext)
                 if type(annotationList[wordList[i]]) == list:
@@ -204,7 +237,7 @@ class Annotator:
                 annotxtlist = ttext.split()
                 # print(annotxtlist)
                 for j in range(len(annotxtlist)):
-                    self.pen.write(annotxtlist[j], font=("Segoe",12))
+                    self.pen.write(annotxtlist[j], font=aft)
                     self.pen.forward(len(annotxtlist[j])*10 + 5)
                     if (j != (len(annotxtlist)-1)) and (self.pen.pos()[0] + len(annotxtlist[j+1])*10 >= (1/2)*wwidth):
                         self.pen.setheading(270)
@@ -245,8 +278,3 @@ if __name__ == '__main__':
     root.mainloop()
 
 
-###
-# self.screen = turtle.TurtleScreen(self.canvas)
-# self.screen.bgcolor("cyan")
-# self.button = tk.Button(self.master, text="Press me", command=self.press)
-# self.button.pack()

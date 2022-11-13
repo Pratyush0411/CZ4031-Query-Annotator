@@ -76,23 +76,20 @@ def main(sql_query):
     ans = __combine_maps(dc,table_reads_map)
     
     qpt.print_tree()
-    return ans, parser.cleaned_query, parser.aliasDict
+    return ans, parser.cleaned_query
 
 
-answer,cleaned_query, dikk = main(sql_query)
+# answer,cleaned_query, dikk = main(sql_query)
 
 
-print ("----------- ANS ----------------")
-for k,v in answer.items():
+# print ("----------- ANS ----------------")
+# for k,v in answer.items():
     
-    print(f'{k} : {v}')
+#     print(f'{k} : {v}')
 
-print("--------------- Cleaned Query ---------------")
+# print("--------------- Cleaned Query ---------------")
 
-print(cleaned_query)
+# print(cleaned_query)
     
-print("--------------- DICT ---------------")
-
-print(dikk)
     
     
