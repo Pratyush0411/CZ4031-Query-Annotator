@@ -14,7 +14,7 @@ class UserInterface:
         self.master = master
         self.master.title("CZ4031-QUERY-ANNOTATOR")
         self.canvas = tk.Canvas(master)
-        self.canvas.config(width=1200, height=700, bg = "blue")
+        self.canvas.config(width= 1200, height=700, bg = "blue")
         self.canvas.pack(side=tk.LEFT)
 
         # scrollbar = Scrollbar()
@@ -23,9 +23,9 @@ class UserInterface:
         # scrollbar.pack(side = RIGHT, fill = Y)
 
         self.textfield = st.ScrolledText(root, height = 20, width = 40, font = self.font)
-        self.sendQueryButton = tk.Button(self.master, text = "Send Query", command = self.get_input).place(x = 1300, y = 400)
-        self.clearInputButton = tk.Button(self.master, text = "Clear input", command = self.clear_input).place(x = 1400, y = 400)
-        self.clearScreenButton = tk.Button(self.master, text = "Clear screen", command = self.clear_screen).place(x = 1350, y = 450)
+        self.sendQueryButton = tk.Button(root, text = "Send Query", command = self.get_input)
+        self.clearInputButton = tk.Button(root, text = "Clear input", command = self.clear_input)
+        self.clearScreenButton = tk.Button(root, text = "Clear screen", command = self.clear_screen)
 
         self.progressLabel = tk.Label(self.master, text = "RUNNING OPTIMIZER... PLEASE WAIT")
         self.progressLabel.config(font = self.font, bg = "GREEN", fg = "WHITE")
@@ -38,6 +38,9 @@ class UserInterface:
 
         self.label.pack()
         self.textfield.pack()
+        self.sendQueryButton.pack()
+        self.clearInputButton.pack()
+        self.clearScreenButton.pack()
         # self.sendQueryButton.pack()
         # self.cancelButton.pack(side = tk.RIGHT)
 
@@ -73,7 +76,7 @@ class UserInterface:
     def get_input(self):
         self.clear_screen()
         query = self.textfield.get("1.0","end")
-        self.show_progressBar()
+        
         print("======================== RETRIEVED QUERY: ========================" , '\n', query)
         print("======================== RUNNING ALGORITHM... ========================")
         try:
@@ -82,7 +85,9 @@ class UserInterface:
         except:
             self.show_errorLabel()
         
-        
+        if ans == {}:
+            self.show_errorLabel()
+
         print("======================== CLEANED QUERY: ========================" , '\n', cleaned_query)
         print("======================== DICTIONARY: ========================", '\n',  ans)
         self.instance = Annotator(cleaned_query,ans)
