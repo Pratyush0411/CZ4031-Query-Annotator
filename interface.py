@@ -11,18 +11,39 @@ class UserInterface:
     font = ("Segoe",12)
 
     def __init__(self, master):
+        self.canvaswidth = 1200
+        self.canvasheight = 700
+        self.textwidth = int(0.03*self.canvaswidth)
+        self.textheight = int(0.03*self.canvasheight)
+
         self.master = master
         self.master.title("CZ4031-QUERY-ANNOTATOR")
+
         self.canvas = tk.Canvas(master)
-        self.canvas.config(width= 1200, height=700, bg = "blue")
+        self.canvas.config(width= self.canvaswidth, height=self.canvasheight, bg = "blue")
         self.canvas.pack(side=tk.LEFT)
+
+        self.canvas.update()
+        print(self.canvas.winfo_reqheight())
+        print(self.canvas.winfo_height())
+
+        self.innerFrame = Frame(master, width = self.canvas.winfo_width()/2, height = self.canvas.winfo_height()/2, bg = "GREEN")
+        # self.innerFrame.pack()
+
+        
+
+        self.canvas.create_window(400,400,window = self.innerFrame)
+
+        self.turtlecanvas = tk.Canvas(self.innerFrame, width = 100, height = 20, bg = "RED")
+        self.turtlecanvas.config(bg = "RED", width = self.canvas.winfo_width()/2, height = self.canvas.winfo_height()/2)
+        self.turtlecanvas.pack()
 
         # scrollbar = Scrollbar()
         # self.textfield = tk.Text(root, height = 20, width = 40, font= ("Segoe",12), yscrollcommand= scrollbar.set)
         # scrollbar.config(command = self.textfield.yview)
         # scrollbar.pack(side = RIGHT, fill = Y)
 
-        self.textfield = st.ScrolledText(root, height = 20, width = 40, font = self.font)
+        self.textfield = st.ScrolledText(root, height = self.textheight, width = self.textwidth, font = self.font)
         self.sendQueryButton = tk.Button(root, text = "Send Query", command = self.get_input)
         self.clearInputButton = tk.Button(root, text = "Clear input", command = self.clear_input)
         self.clearScreenButton = tk.Button(root, text = "Clear screen", command = self.clear_screen)
@@ -44,8 +65,9 @@ class UserInterface:
         # self.sendQueryButton.pack()
         # self.cancelButton.pack(side = tk.RIGHT)
 
-        self.screen = turtle.TurtleScreen(self.canvas)
-        self.screen.bgcolor("white")
+        self.screen = turtle.TurtleScreen(self.turtlecanvas)
+        self.screen.screensize()
+        self.screen.bgcolor("YELLOW")
         
 
         # print(self.screen.window_height(), self.screen.window_width())
