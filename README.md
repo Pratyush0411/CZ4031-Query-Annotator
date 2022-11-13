@@ -2,10 +2,10 @@
 NTU Computer Science - CZ4031 Database System Principles (Project 2: Connecting your query with query plans)
 
 ## GROUP 3 
-COLIN TAN G-HAO
-LIM ZHENGWEI TREVOR
-MUHAMMAD IHSAN BIN MOHAMMAD AZMI
-NGUYEN VINH QUANG
+COLIN TAN G-HAO <br>
+LIM ZHENGWEI TREVOR <br> 
+MUHAMMAD IHSAN BIN MOHAMMAD AZMI <br>
+NGUYEN VINH QUANG <br> 
 PANDEY PRATYUSH KUMAR
 
 ### Running of our project
