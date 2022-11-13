@@ -2,17 +2,18 @@ import turtle
 import tkinter as tk
 import tkinter.scrolledtext as st
 from tkinter import *
-import main
+import annotation
 
 
 class UserInterface:
 
-    font = ("Segoe",12)
+    font = ("Segoe", 12)
+
     def __init__(self, master):
         self.master = master
         self.master.title("CZ4031-QUERY-ANNOTATOR")
         self.canvas = tk.Canvas(master)
-        self.canvas.config(width=1200, height=700, bg = "blue")
+        self.canvas.config(width=1200, height=700, bg="blue")
         self.canvas.pack(side=tk.LEFT)
 
         # scrollbar = Scrollbar()
@@ -20,13 +21,17 @@ class UserInterface:
         # scrollbar.config(command = self.textfield.yview)
         # scrollbar.pack(side = RIGHT, fill = Y)
 
-        self.textfield = st.ScrolledText(root, height = 20, width = 40, font = self.font)
-        self.sendQueryButton = tk.Button(self.master, text = "Send Query", command = self.get_input).place(x = 1300, y = 400)
-        self.clearInputButton = tk.Button(self.master, text = "Clear input", command = self.clear_input).place(x = 1400, y = 400)
-        self.clearScreenButton = tk.Button(self.master, text = "Clear screen", command = self.clear_screen).place(x = 1350, y = 450)
+        self.textfield = st.ScrolledText(
+            root, height=20, width=40, font=self.font)
+        self.sendQueryButton = tk.Button(
+            self.master, text="Send Query", command=self.get_input).place(x=1300, y=400)
+        self.clearInputButton = tk.Button(
+            self.master, text="Clear input", command=self.clear_input).place(x=1400, y=400)
+        self.clearScreenButton = tk.Button(
+            self.master, text="Clear screen", command=self.clear_screen).place(x=1350, y=450)
 
-        self.label = tk.Label(root, text = "Enter your query to optimize: ")
-        self.label.config(font = self.font)
+        self.label = tk.Label(root, text="Enter your query to optimize: ")
+        self.label.config(font=self.font)
 
         self.label.pack()
         self.textfield.pack()
@@ -35,19 +40,18 @@ class UserInterface:
 
         self.screen = turtle.TurtleScreen(self.canvas)
         self.screen.bgcolor("white")
-        
 
         print(self.screen.window_height(), self.screen.window_width())
         # self.canvas.create_window(300, 300, window = self.button)
-        
+
     def clear_input(self):
-        self.textfield.delete("1.0","end")
-    
+        self.textfield.delete("1.0", "end")
+
     def clear_screen(self):
         self.screen.clearscreen()
-        
+
     def get_input(self):
-        query = self.textfield.get("1.0","end")
+        query = self.textfield.get("1.0", "end")
         print(query)
         # self.label1 = tk.Label(root, text = query)
         # self.canvas.create_window(200,230, window = self.label1)
@@ -59,20 +63,21 @@ class UserInterface:
                 r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA')"""
 
         annotationList = {"customer C": ["This is the first annotation"],
-                        "C.c_custkey = O.o_custkey": ["This is the second annotation that is a bit longer than the other ones and spans more than one line"],
-                        "A = B": ["This is the third annotation"], "orders O": ["This is the 4th one"]}
+                          "C.c_custkey = O.o_custkey": ["This is the second annotation that is a bit longer than the other ones and spans more than one line"],
+                          "A = B": ["This is the third annotation"], "orders O": ["This is the 4th one"]}
 
-        main.main(query)
+        annotation.annotator(query)
         # self.instance = Annotator(query,annotationList)
         # wordannoidx, wordList = Annotator.annotation_matcher(self.instance)
- 
+
         # Annotator.turtle_drawer(self, wordannoidx, wordList, annotationList)
-    
+
+
 class Annotator:
-    def __init__(self,query, annotationList):
+    def __init__(self, query, annotationList):
         self.annotationList = annotationList
         self.query = query
-    
+
     def annotation_matcher(self):
         # Pre-processing of query in order to return the indexes of the annotee
         tquery = self.query
@@ -86,13 +91,12 @@ class Annotator:
         # print("1) Annotees sorted: " + str(keyList))
         # print()
 
-
         # 2) Iterate through the annotees by the number of annotations they have in their array.
         #    Identify the indexes of the annotees, checking that they do not overlap with previous ones
         #    For each annotee, check that the left and write of it are either a space, comma, or bracket, and not other letters
         for k in keyList:
             # print("Finding indexes for " + k)
-            if type(self.annotationList[k]) == list: # If the value is a list
+            if type(self.annotationList[k]) == list:  # If the value is a list
                 count = len(self.annotationList[k])
             else:
                 count = 1
@@ -111,9 +115,11 @@ class Annotator:
                     strt = tindex + len(k)
                     continue  # go to next loop
                 else:  # Means that proper occurence was found
-                    idsort.append(tindex)  # Append the index of k to the idsort list
+                    # Append the index of k to the idsort list
+                    idsort.append(tindex)
                     annoidx[tindex] = k  # Add the index to the dictionary
-                    tquery = tquery[:tindex] + " " * len(k) + tquery[(tindex+len(k)):]
+                    tquery = tquery[:tindex] + " " * \
+                        len(k) + tquery[(tindex+len(k)):]
                     count -= 1  # Reduce count by 1
         idsort.sort()
         # print("Indexes of annotees in query found:")
@@ -145,13 +151,13 @@ class Annotator:
         # print()
 
         return wordannoidx, wordList
-    
+
     def turtle_drawer(self, wordannoidx, wordList, annotationList):
 
         ftsz = 16
         aftsz = 12
 
-        self.pen = turtle.RawTurtle(self.screen,shape = "turtle")
+        self.pen = turtle.RawTurtle(self.screen, shape="turtle")
         self.pen.color("green")
         self.pen.speed(0)
 
@@ -176,7 +182,7 @@ class Annotator:
                 self.pen.end_fill()
                 self.pen.penup()
                 self.pen.color("black")
-            self.pen.write(wordList[i], font= ("Segoe",16))
+            self.pen.write(wordList[i], font=("Segoe", 16))
             self.pen.forward(len(wordList[i]) * 14)
             # For annotating
             if wordannoidx and i == wordannoidx[0]:  # ANNOTATION FOUND
@@ -204,12 +210,13 @@ class Annotator:
                 annotxtlist = ttext.split()
                 # print(annotxtlist)
                 for j in range(len(annotxtlist)):
-                    self.pen.write(annotxtlist[j], font=("Segoe",12))
+                    self.pen.write(annotxtlist[j], font=("Segoe", 12))
                     self.pen.forward(len(annotxtlist[j])*10 + 5)
                     if (j != (len(annotxtlist)-1)) and (self.pen.pos()[0] + len(annotxtlist[j+1])*10 >= (1/2)*wwidth):
                         self.pen.setheading(270)
                         self.pen.forward(aftsz+5)
-                        self.pen.setposition((1/6)*wwidth + 5, self.pen.pos()[1])
+                        self.pen.setposition(
+                            (1/6)*wwidth + 5, self.pen.pos()[1])
                         self.pen.setheading(0)
                 self.pen.setposition(curpos)
                 self.pen.color("black")
@@ -237,6 +244,7 @@ class Annotator:
         # window.exitonclick()
 
         # turtle.done
+
 
 if __name__ == '__main__':
     root = tk.Tk()
