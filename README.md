@@ -8,8 +8,11 @@ MUHAMMAD IHSAN BIN MOHAMMAD AZMI <br>
 NGUYEN VINH QUANG <br> 
 PANDEY PRATYUSH KUMAR
 
-### Running of our project
+### Running the application
 1. Setup TPC-H Database in PostgreSQL
 2. Configure your PostgreSQL information in the ".env" file
+3. Run `python project.py` in the working directory to launch the interface
+4. Input any query or select the respective buttons for pre-defined queries
+5. 
 
 
