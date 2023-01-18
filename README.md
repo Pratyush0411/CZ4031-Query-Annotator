@@ -1,5 +1,6 @@
 # CZ4031-Query-Annotator
 NTU Computer Science - CZ4031 Database System Principles (Project 2: Connecting your query with query plans)
+Received special mention from Professor (Top 8 teams)
 
 ## GROUP 3 
 COLIN TAN G-HAO <br>
