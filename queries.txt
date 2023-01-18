@@ -13,6 +13,97 @@ INTERSECT
 select n_name
 from nation;
 
-3. SELECT count(n_name)
+## sub query on same level
+SELECT n_name
+FROM nation, region,supplier
+WHERE r_regionkey=n_regionkey AND s_nationkey = n_nationkey AND n_name IN 
+(SELECT DISTINCT n_name FROM nation,region WHERE r_regionkey=n_regionkey AND r_name <> 'AMERICA') AND
+r_name in (SELECT DISTINCT r_name from region where r_name <> 'ASIA');
+
+
+groupby 
+
+
+3. SELECT count(n_name) as CNT
 FROM nation, region,supplier
 WHERE r_regionkey=n_regionkey AND r_name = 'AMERICA' AND s_nationkey = n_nationkey;
+HAVING CNT>100
+
+To Do:
+
+1. IN operator --> join - quang 
+2. Having alias --> actual name -trevor
+3. String matching - Pratyush
+4. Join ordering - Pratyush, trevor
+5. Justification (Hardcode ---)
+6. part >$1
+
+
+
+
+Justification:
+
+1. join
+2. scans
+
+
+a join b join c (200+300)
+
+300 > 100
+
+b join c join a (100 + 900) 
+
+Compare AQP tree and QEP tree
+
+
+Scan - Index and Sequential and Bitmap 
+
+
+return [aqp_root]
+
+
+bfs_traversal(qep_root,[aqp1_root, aqp2_root] ):
+
+qep_queue = [root]
+
+aqp_queue = [aqp1_root,aqp2_root]
+
+For all nodes in same level of BFS Tree:
+    for qep_node in qep_queue:
+        for aqp_node in aqp_queue:
+            
+            if qep_node.is_conditional():
+                match(qep_node, aqp_node)
+
+
+
+
+How do we generate AQP?
+
+- Postgresql allows disable hash join and enable NL join 
+- run the query and we get QEP 
+- AQP with only NL Join
+- [AQP with only NL, AQP with only Hash, ....]
+
+How do we represent query plans?
+
+- tree
+- root and every node with children
+
+
+How do we generate justification?
+
+bfs_traversal(qep_root,[aqp1_root, aqp2_root] ):
+
+qep_queue = [root]
+aqp1_root,aqp2_root]
+
+aqp_queue = [
+For all nodes in same level of BFS Tree:
+
+    Level L:
+        for qep_node in qep_queue:
+            for aqp_node in aqp_queue:
+                
+                if qep_node.is_conditional(): // no condition no annotation
+                    match(qep_node, aqp_node) --> Pratyush
